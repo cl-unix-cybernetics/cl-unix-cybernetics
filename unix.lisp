@@ -128,6 +128,20 @@
 
 ;;  File
 
+(define-resource-class file ()
+  ((type :type symbol)
+   (permissions :type string)
+   (owner :type (or string fixnum))
+   (group :type (or string fixnum))
+   (size :type integer)
+   (atime :type integer)
+   (mtime :type integer)
+   (ctime :type integer)
+   (blocks :type integer)
+   (md5 :type string)
+   (sha1 :type string)
+   (content :type string)))
+
 (define-constant +file-type-mode-bits+
     '((:fifo              . #o010000)
       (:character-special . #o020000)
@@ -169,31 +183,39 @@
   (values file dev ino mode nlink uid gid rdev size
 	  atime mtime ctime blksize blocks flags))
 
-(define-resource-class file ()
-  ((type :type symbol)
-   (permissions :type string)
-   (owner :type (or string fixnum))
-   (group :type (or string fixnum))
-   (size :type integer)
-   (atime :type integer)
-   (mtime :type integer)
-   (ctime :type integer)
-   (blocks :type integer)))
-
-(defmethod gather-resource ((resource file) name)
-  (iterate (stat<1> (name* dev* ino* mode* nlink* uid* gid* rdev* size*
-	             atime* mtime* ctime* blksize* blocks* flags*)
-		    in (stat name))
-	   (when (string= name name*)
-	     (with-slots (type permissions owner group
-			  size atime mtime ctime blocks) resource
+(defun gather-file-stat (resource)
+  (with-slots (name type permissions owner group
+		    size atime mtime ctime blocks) resource
+    (iterate (stat<1> (name* dev* ino* mode* nlink* uid* gid* rdev* size*
+			     atime* mtime* ctime* blksize* blocks* flags*)
+		      in (stat name))
+	     (when (string= name name*)
 	       (setf type (mode-file-type mode*)
 		     permissions (mode-permissions mode*)
 		     owner (gather-uid-user-name uid*)
 		     group (gather-gid-group-name gid*)
 		     size size* atime atime* mtime mtime* ctime ctime*
-		     blocks blocks*))
-	    (return resource))))
+		     blocks blocks*)
+	       (return resource)))))
+
+(define-syntax cksum<1> (algo sum file)
+    "(\\S+) \\((.*)\\) = (\\S+)"
+  "Syntax for cksum(1) output.")
+
+(defun gather-file-cksum (resource &rest algorithms)
+  (let ((name (resource-name resource)))
+    (iterate (cksum<1> (algo* file* sum*)
+		       in (run "cksum -a ~{~A~^,~} ~A"
+			       algorithms (sh-quote name)))
+	     (for algo = (find algo* algorithms
+			       :key #'symbol-name
+			       :test #'string-equal))
+	     (when (and algo (string= name file*))
+	       (setf (resource-property resource algo) sum*))))
+  resource)
+
+(defmethod gather-resource ((resource file) name)
+  (gather-file-stat resource))
 
 (defun permissions-mode-bits (s)
   (declare (type (string 9) s))
@@ -207,3 +229,12 @@
    (ecase (char s 6) (#\- 0) (#\r #o0004))
    (ecase (char s 7) (#\- 0) (#\w #o0002))
    (ecase (char s 8) (#\- 0) (#\x #o0001) (#\S #o1000) (#\s #o1001))))
+
+(defmethod (setf resource-property) :after ((value string)
+					    (resource file)
+					    (property (eql :content)))
+  (dolist (digest '(:md5 :sha1))
+    (setf (resource-property resource digest)
+	  (ironclad:digest-sequence
+	   digest
+	   (trivial-utf-8:string-to-utf-8-bytes value)))))

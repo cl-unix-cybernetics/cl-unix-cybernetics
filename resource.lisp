@@ -50,48 +50,25 @@
 ;;  Resource
 
 (defclass resource (standard-object)
-  ((name :type t
+  ((name :type string
 	 :initform (error "missing resource name")
-	 :initarg name
+	 :initarg :name
 	 :reader resource-name))
   (:metaclass resource-class))
 
 (defun make-resource (type name &rest properties)
-  (apply #'make-instance type 'name name properties))
-
-;;  Resource registration
-
-(defgeneric register-resource (resource))
-
-(defmethod register-resource ((res resource))
-  "FIXME: lock instances index"
-  (let ((name (resource-name res))
-	(index (resource-class-instances (class-of res))))
-    (assert (not (gethash name index)))
-    (setf (gethash name index) res)))
-
-(defun define-resource (type name &rest properties)
-  (let ((res (apply #'make-resource type name properties)))
-    (register-resource res)
-    res))
-
-(defgeneric find-resource (type name))
-
-(defmethod find-resource ((type class) (name string))
-  (gethash name (resource-class-instances type)))
-
-(defmethod find-resource ((type symbol) name)
-  (find-resource (find-class type) name))
+  (apply #'make-instance type :name name properties))
 
 ;;  Resource property
 
 (defun resource-property-slot-definition (resource property)
   (declare (type resource resource)
 	   (type symbol property))
-  (find-if (lambda (slot)
-	     (let ((key (car (closer-mop:slot-definition-initargs slot))))
-	       (eq property key)))
-	   (closer-mop:class-slots (class-of resource))))
+  (or (find-if (lambda (slot)
+		 (let ((key (car (closer-mop:slot-definition-initargs slot))))
+		   (eq property key)))
+	       (closer-mop:class-slots (class-of resource)))
+      (error "Property not found : ~S for ~S" property resource)))
 
 (defun resource-property-slot-name (resource property)
   (closer-mop:slot-definition-name
@@ -118,7 +95,8 @@
 (defmethod resource-properties ((class resource-class))
   (iter (for slot in (closer-mop:class-slots class))
         (for key = (car (closer-mop:slot-definition-initargs slot)))
-        (when (keywordp key)
+        (when (and (keywordp key)
+		   (not (eq :name key)))
 	  (collect key))))
 
 (defmethod resource-properties ((res resource))
@@ -129,7 +107,8 @@
 	    (let ((key (car (closer-mop:slot-definition-initargs slot)))
 		  (name (closer-mop:slot-definition-name slot)))
 	      (when (and (slot-boundp resource name)
-			 (keywordp key))
+			 (keywordp key)
+			 (not (eq :name key)))
 		(funcall fn key (slot-value resource name)))))
 	  (closer-mop:class-slots (class-of resource))))
 
@@ -167,16 +146,20 @@
        #1#
        (write-char #\Space s)))))
 
-;;  Gathering resource values
+;;  Gathering resource properties
 
 (defgeneric gather-resource-property (resource property))
+
+;;  Gathering resources
 
 (defgeneric gather-resource (type name))
 
 (defmethod gather-resource ((resource resource) (name t))
   (dolist (property (resource-properties resource))
-    (setf (slot-value resource property)
-	  (gather-resource-property resource property)))
+    (if (slot-boundp resource property)
+	(slot-value resource property)
+	(setf (slot-value resource property)
+	      (gather-resource-property resource property))))
   resource)
 
 (defmethod gather-resource ((type class) (name string))
@@ -187,6 +170,19 @@
     (setq type (find-symbol (symbol-name type) :adams)))
   (gather-resource (find-class type) name))
 
-;;  Ensuring resource values
+;;  Ensuring resource properties
 
-(defgeneric ensure-resource-property (resource property value))
+(defgeneric ensure-resource-property (spec property gathered))
+
+(defgeneric ensure-resource (spec))
+
+(defmethod ensure-resource ((resource resource))
+  (let ((gathered (gather-resource (class-of resource)
+				   (resource-name resource))))
+    (mapcan-resource-properties
+     (lambda (property spec-value)
+       (unless (and (slot-boundp gathered property)
+		    (equal spec-value
+			   (slot-value gathered property)))
+	 (ensure-resource-property spec property gathered)))
+     spec)))
