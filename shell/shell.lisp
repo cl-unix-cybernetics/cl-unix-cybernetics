@@ -102,6 +102,7 @@ Error: ~S"
 (defgeneric shell-in (data shell))
 (defgeneric shell-out/line (shell))
 (defgeneric shell-err (shell))
+(defgeneric shell-err/line (shell))
 (defgeneric shell-status (shell))
 (defgeneric shell-close (shell))
 (defgeneric shell-closed-p (shell))
@@ -129,12 +130,12 @@ Error: ~S"
 		       (setf (cdr lines-tail) (cons prev nil)
 			     lines-tail (cdr lines-tail)))))
 	   (out (cdr lines-head))
-	   (err (shell-err shell)))
+	   (err (shell-err/line shell)))
       (when (find :shell *debug*)
 	(dolist (line out)
 	  (format t "~D│ ~A~%" (shell-pid shell) line))
-	(when (< 0 (length err))
-	  (format t "~D┃ ~A~&" (shell-pid shell) err)))
+	(dolist (line err)
+	  (format t "~D┃ ~A~&" (shell-pid shell) line)))
       (values status out err))))
 
 ;;  Run command

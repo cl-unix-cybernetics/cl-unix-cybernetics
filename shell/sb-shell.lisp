@@ -91,3 +91,7 @@
      (format *debug-io* "~A" err)
      (force-output *debug-io*))
    err))
+
+(defmethod shell-err/line ((shell sb-shell))
+  (cl-ppcre:split #.(make-string 1 :initial-element #\Newline)
+		  (shell-err shell)))
