@@ -23,7 +23,12 @@
 (defclass sb-shell (shell)
   ((process :type sb-impl::process
 	    :initarg :process
-	    :reader shell-process)))
+	    :reader shell-process)
+   (command :type string
+	    :initarg command
+	    :reader shell-command)))
+
+;;  Shell infos
 
 (defmethod shell-close ((shell sb-shell))
   (format t "~&Closing shell : ~A~%" shell)
@@ -37,6 +42,10 @@
 (defmethod shell-pid ((shell sb-shell))
   (sb-ext:process-pid (shell-process shell)))
 
+(defmethod print-object ((shell sb-shell) stream)
+  (print-unreadable-object (shell stream :type t)
+    (format stream "~D ~S" (shell-pid shell) (shell-command shell))))
+
 (defun make-shell (&optional (command *default-shell-command*) &rest args)
   (format t "~&Opening shell : ~A~{ ~A~}~%" command args)
   (force-output)
@@ -46,7 +55,10 @@
 				     :output :stream
 				     :error :stream)))
     (unwind-protect
-	 (let ((shell (make-instance 'sb-shell :process process)))
+	 (let ((shell (make-instance 'sb-shell
+				     :process process
+				     :command (format nil "~A~{ ~A~}"
+						      command args))))
 	   (shell-in "true" shell)
 	   (shell-status shell)
 	   (setq process nil)
