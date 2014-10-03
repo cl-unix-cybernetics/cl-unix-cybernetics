@@ -60,11 +60,17 @@
        (unwind-protect (let ((,var ,g!host)) ,@body)
 	 (host-disconnect ,g!host)))))
 
-(defun host-run (host command &rest format-args)
+(defgeneric host-run (host command &rest format-args))
+
+(defmethod host-run ((host host) (command string) &rest format-args)
   (let ((shell (host-shell host)))
     (when (shell-closed-p shell)
       (setq shell (host-connect host)))
     (apply #'shell-run shell command format-args)))
+
+(defmethod host-run ((hostname string) command &rest format-args)
+  (with-connected-host (host hostname)
+    (apply #'host-run host command format-args)))
 
 ;;  Host manifest
 
@@ -78,7 +84,6 @@
 				    :hostname "localhost")))
 
 (defmethod host-connect ((host (eql *localhost*)))
-  (assert (null (host-shell host)))
   (setf (host-shell host) (make-shell)))
 
 ;;  SSH host
@@ -86,7 +91,6 @@
 (defclass ssh-host (host) ())
 
 (defmethod host-connect ((host ssh-host))
-  (assert (null (host-shell host)))
   (setf (host-shell host) (make-shell "/usr/bin/ssh" (hostname host))))
 
 ;;  High level API
