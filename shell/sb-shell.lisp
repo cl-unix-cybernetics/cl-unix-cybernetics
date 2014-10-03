@@ -31,6 +31,9 @@
   (sb-ext:process-kill (shell-process shell) sb-unix:sigterm)
   (sb-ext:process-close (shell-process shell)))
 
+(defmethod shell-closed-p ((shell sb-shell))
+  (not (eq :running (sb-ext:process-status (shell-process shell)))))
+
 (defmethod shell-pid ((shell sb-shell))
   (sb-ext:process-pid (shell-process shell)))
 
@@ -63,8 +66,8 @@
   (write-string data (sb-ext:process-input (shell-process shell))))
 
 (defmethod shell-out/line ((shell sb-shell))
-  (let ((out (read-line (sb-ext:process-output (shell-process shell)))))
-    (when (find 'sb-shell *debug*)
+  (let ((out (read-line (sb-ext:process-output (shell-process shell)) nil nil)))
+    (when (and out (debug-p :sb-shell))
       (format *debug-io* "~A~%" out)
       (force-output *debug-io*))
     out))

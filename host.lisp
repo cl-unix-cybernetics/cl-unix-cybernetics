@@ -21,18 +21,33 @@
 ;;  Host
 
 (defclass host ()
-  ((name :type string :initarg :hostname :reader hostname)
-   (shell :type shell :accessor host-shell)))
-
-(defgeneric host-connect (host))
-(defgeneric host-disconnect (host))
+  ((name :type string
+	 :initarg :hostname
+	 :reader hostname)
+   (shell :type shell
+	  :initarg :shell)
+   (manifest :type manifest
+	     :initarg :manifest
+	     :reader host-manifest)))
 
 (defmethod print-object ((host host) stream)
   (print-unreadable-object (host stream :type t :identity t)
     (write-string (hostname host) stream)))
 
-(defmethod slot-unbound (class (host host) (slot (eql 'shell)))
-  (host-connect host))
+;;  Host shell
+
+(defgeneric host-connect (host))
+(defgeneric host-disconnect (host))
+(defgeneric host-shell (host))
+(defgeneric (setf host-shell) (shell host))
+
+(defmethod host-shell ((host host))
+  (if (slot-boundp host 'shell)
+      (slot-value host 'shell)
+      (setf (slot-value host 'shell) (host-connect host))))
+
+(defmethod (setf host-shell) ((shell shell) (host host))
+  (setf (slot-value host 'shell) shell))
 
 (defmethod host-disconnect ((host host))
   (when (slot-boundp host 'shell)
@@ -46,14 +61,24 @@
 	 (host-disconnect ,g!host)))))
 
 (defun host-run (host command &rest format-args)
-  (apply #'shell-run (host-shell host) command format-args))
+  (let ((shell (host-shell host)))
+    (when (shell-closed-p shell)
+      (setq shell (host-connect host)))
+    (apply #'shell-run shell command format-args)))
+
+;;  Host manifest
+
+(defmethod slot-unbound (class (host host) (slot-name (eql 'manifest)))
+  (setf (slot-value host 'manifest) (manifest (hostname host))))
 
 ;;  localhost
 
 (defvar *localhost* (load-time-value
-		     (make-instance 'host :hostname "localhost")))
+		     (make-instance 'host
+				    :hostname "localhost")))
 
 (defmethod host-connect ((host (eql *localhost*)))
+  (assert (null (host-shell host)))
   (setf (host-shell host) (make-shell)))
 
 ;;  SSH host
@@ -61,7 +86,8 @@
 (defclass ssh-host (host) ())
 
 (defmethod host-connect ((host ssh-host))
-  (setf (host-shell host) (make-shell `("/usr/bin/ssh" ,(hostname host)))))
+  (assert (null (host-shell host)))
+  (setf (host-shell host) (make-shell "/usr/bin/ssh" (hostname host))))
 
 ;;  High level API
 
@@ -69,7 +95,8 @@
 
 (defmacro with-host (hostname &body body)
   `(with-connected-host (*host* ,hostname)
-     ,@body))
+     (let ((*manifest* (host-manifest *host*)))
+       ,@body)))
 
 (defun run (command &rest format-args)
   (apply #'host-run *host* command format-args))

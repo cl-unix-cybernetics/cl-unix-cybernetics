@@ -19,9 +19,8 @@
 (in-package :cl-user)
 
 (defpackage :adams
-  (:use :alexandria :cl :iterate)
+  (:use :alexandria :cl :debug :iterate)
   (:export
-   #:*debug*
    ;;  Shell
    #:*default-shell-command*
    #:*shell-signal-errors*
@@ -54,6 +53,13 @@
    #:define-resource-class
    #:resource
    #:gather-resource
+   ;;  Manifest
+   #:manifest
+   #:manifest-resources
+   #:find-manifest
+   #:remove-manifest
+   #:with-manifest
+   #:define-resource
    ;;  Unix
    #:+timestamp-offset+
    #:timestamp-to-universal-time
@@ -73,4 +79,4 @@
    #:stat<1>))
 
 (defpackage :adams-user
-  (:use :cl :adams))
+  (:use :adams :cl :cl-debug))

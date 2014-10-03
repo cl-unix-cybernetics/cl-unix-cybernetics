@@ -104,6 +104,7 @@ Error: ~S"
 (defgeneric shell-err (shell))
 (defgeneric shell-status (shell))
 (defgeneric shell-close (shell))
+(defgeneric shell-closed-p (shell))
 
 (defmethod shell-status ((shell shell))
   (let* ((delim (make-delimiter))

@@ -26,7 +26,14 @@
   :author "Thomas de Grivel <billitch@gmail.com>"
   :version "0.1"
   :description "Remote system administration tools"
-  :depends-on ("alexandria" "cl-base64" "cl-ppcre" "closer-mop" "iterate")
+  :depends-on ("alexandria"
+	       "cl-base64"
+	       "cl-debug"
+	       "cl-ppcre"
+	       "closer-mop"
+	       "ironclad"
+	       "iterate"
+	       "trivial-utf-8")
   :components
   ((:file "package")
    (:module "shell" :depends-on ("package")
@@ -34,6 +41,7 @@
 	    ((:file "shell")
 	     #+sbcl
 	     (:file "sb-shell" :depends-on ("shell"))))
-   (:file "host" :depends-on ("shell"))
-   (:file "resource" :depends-on ("host"))
+   (:file "resource" :depends-on ("shell"))
+   (:file "manifest" :depends-on ("resource"))
+   (:file "host" :depends-on ("manifest"))
    (:file "unix" :depends-on ("resource"))))
