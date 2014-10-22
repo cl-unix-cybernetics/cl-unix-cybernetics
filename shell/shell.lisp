@@ -24,9 +24,6 @@
 
 ;;  String functions
 
-(defun str (&rest args)
-  (apply #'concatenate 'string args))
-
 (defun read-string (stream)
   (with-output-to-string (out)
     (do ((c #1=(when (listen stream)

@@ -18,16 +18,29 @@
 
 (in-package :adams)
 
-;;  Timestamp
+(enable-re-syntax)
 
-(defconstant +timestamp-offset+
-  (encode-universal-time 0 0 0 1 1 1970 0))
+;;  Simple regexp-based parser generator with ITERATE support
 
-(defun timestamp-to-universal-time (timestamp)
-  (+ timestamp +timestamp-offset+))
-
-(defun universal-time-to-timestamp (ut)
-  (- ut +timestamp-offset+))
+(defmacro define-syntax (name vars re &body body)
+  (let ((parse-name (sym 'parse- name))
+	(doc (when (stringp (first body)) (pop body)))
+	(values (or (first (last body))
+		    `(values ,@(iter (for spec in vars)
+				     (if (consp spec)
+					 (dolist (var (cdr spec))
+					   (collect var))
+					 (collect spec)))))))
+    `(progn
+       (defun ,parse-name (line)
+	 ,@(when doc (list doc))
+	 (re-bind ,re ,vars line
+	   ,@(or body `(,values))))
+       (iterate:defmacro-clause (,name iter-vars in lines)
+	 ,@(when doc (list doc))
+	 (let ((line (gensym ,(format nil "~A-LINE-" (symbol-name name)))))
+	   `(progn (for ,line in ,lines)
+		   (for (values ,@iter-vars) = (,',parse-name ,line))))))))
 
 ;;  Standard commands
 
@@ -37,188 +50,125 @@
 (defun egrep (pattern &rest files)
   (run "egrep ~A~{ ~A~}" (sh-quote pattern) (mapcar #'sh-quote files)))
 
-(defun stat (&rest files)
-  (run "stat -r~{ ~A~}" (mapcar #'sh-quote files)))
+(defun stat (options &rest files)
+  (run "stat ~A~{ ~A~}" options (mapcar #'sh-quote files)))
+
+(defun ls (options &rest files)
+  (run "ls ~A~{ ~A~}" options (mapcar #'sh-quote files)))
 
 ;;  Group
 
-(define-resource-class group ()
-  ((passwd :type string)
-   (gid :type fixnum)
-   (members :type list)))
-
-(defmacro define-syntax (name vars regex &body body)
-  (let ((parse-name (intern (format nil "PARSE-~A" (symbol-name name))))
-	(doc (when (stringp (car body)) (pop body)))
-	(values (or (car (last body))
-		    `(values ,@(mapcan (lambda (v) (if (consp v)
-						       (copy-list (cdr v))
-						       (cons v nil)))
-				       vars)))))
-    `(progn
-       (defun ,parse-name (line)
-	 ,@(when doc (list doc))
-	 (cl-ppcre:register-groups-bind ,vars (,regex line)
-	   ,@(or body `(,values))))
-       (defmacro-clause (,name vars IN lines)
-	 ,@(when doc (list doc))
-	 (let ((line (gensym (format nil "~A-LINE-" ,(symbol-name name)))))
-	   `(progn (for ,line in ,lines)
-		   (for (values ,@vars) = (,',parse-name ,line))))))))
+(define-resource-class group () ()
+  ((probe-group-in-/etc/group :properties (name passwd gid members))))
 
 (define-syntax group<5> (name passwd
 			 (#'parse-integer gid)
 			 ((lambda (m) (cl-ppcre:split "," m)) members))
-  "^([^:]*):([^:]*):([^:]*):([^:]*)$"
+  #~|^([^:]*):([^:]*):([^:]*):([^:]*)$|
   "Syntax of the group permissions file /etc/group. See group(5).")
 
-(defmethod gather-resource ((resource group) name)
-  (iter (group<5> (name* passwd* gid* members*) in (grep name "/etc/group"))
-    (when (string= name name*)
-      (with-slots (passwd gid members) resource
-	(setf passwd passwd* gid gid* members members*))
-      (return resource))))
-
-(defun gather-gid-group-name (gid)
-  (iterate (group<5> (name* passwd* gid* members*)
-		      in (grep (format nil ":~A:" gid) "/etc/group"))
-	   (when (= gid gid*)
-	     (return name*))))
+(defmethod probe-group-in-/etc/group ((group group) (os os-unix))
+  (let ((id (resource-id group)))
+    (iter (group<5> (name passwd gid members) in (grep (str id) "/etc/group"))
+	  (when (etypecase id
+		  (integer (= id gid))
+		  (string (string= id name)))
+	    (return (list 'name name
+			  'passwd passwd
+			  'gid gid
+			  'members members))))))
 
 ;;  User
 
 (define-resource-class user ()
-  ((uid :type fixnum)
-   (gid :type fixnum)
-   (groups :type list)
-   (realname :type string)
-   (home :type string)
-   (shell :type string)))
+  ()
+  ((probe-user-in-/etc/passwd :properties (login uid gid realname home shell))
+   (probe-user-groups-in-/etc/group :properties (groups))))
 
 (define-syntax passwd<5> (name pass
 			  (#'parse-integer uid gid)
 			  realname home shell)
-  "^([^:]*):([^:]*):([^:]*):([^:]*):([^:]*):([^:]*):([^:]*)$"
+  #~|^([^:]*):([^:]*):([^:]*):([^:]*):([^:]*):([^:]*):([^:]*)$|
   "Syntax for the password file /etc/passwd. See passwd(5).")
 
-(defun gather-user-groups (user user-gid)
-  (iter (group<5> (name* passwd* gid* members*)
-		  in (grep user "/etc/group"))
-	(with user-group = nil)
-	(cond ((= user-gid gid*) (setq user-group name*))
-	      ((find user members* :test #'string=) (collect name* into groups)))
-	(finally (return (if user-group
-			     (cons user-group groups)
-			     groups)))))
+(defmethod probe-user-in-/etc/passwd ((user user) (os os-unix))
+  (let ((id (resource-id user)))
+    (iter (passwd<5> (login pass uid gid realname home shell)
+		     in (etypecase id
+			  (integer (grep (str #\: id #\:) "/etc/passwd"))
+			  (string (egrep (str #\^ id #\:) "/etc/passwd"))))
+	  (when (etypecase id
+		  (string (string= id login))
+		  (integer (= id uid)))
+	    (return (list 'login login 'uid uid 'gid gid
+			  'realname realname 'home home 'shell shell))))))
 
-(defmethod gather-resource ((resource user) name)
-  (iter (passwd<5> (name* pass* uid* gid* realname* home* shell*)
-		   in (grep name "/etc/passwd"))
-	(when (string= name name*)
-	  (with-slots (uid gid groups realname home shell) resource
-	    (setf uid uid* gid gid* realname realname* home home* shell shell*
-		  groups (gather-user-groups name gid*)))
-	  (return resource))))
+(defmethod probe-user-groups-in-/etc/group ((user user) (os os-unix))
+  (let* ((id (resource-id user))
+	 (user-login (if (stringp id)
+			 id
+			 (get-probed user 'login)))
+	 (user-gid (get-probed user 'gid)))
+    (iter (group<5> (name passwd gid members) in (grep user-login
+						       "/etc/group"))
+	  (with user-group = nil)
+	  (cond ((= user-gid gid) (setq user-group name))
+		((find user-login members :test #'string=) (collect name into groups)))
+	  (finally (let ((groups (sort groups #'string<)))
+		     (return (list 'groups (if user-group
+					       (cons user-group groups)
+					       groups))))))))
 
-(defun gather-uid-user-name (uid)
-  (iterate (passwd<5> (name* pass* uid* gid* realname* home* shell*)
-		      in (grep (format nil ":~D:" uid) "/etc/passwd"))
-	   (when (= uid uid*)
-	     (return name*))))
+;;  st_mode, see stat(2)
 
-;;  File
+(define-constant +stat-mode-types+
+    '((fifo              #\p #o010000)
+      (character-special #\c #o020000)
+      (directory         #\d #o040000)
+      (block-special     #\b #o060000)
+      (file              #\- #o100000)
+      (symbolic-link     #\l #o120000)
+      (socket            #\s #o140000))
+  :test #'equal)
 
-(define-resource-class file ()
-  ((type :type symbol)
-   (permissions :type string)
-   (owner :type (or string fixnum))
-   (group :type (or string fixnum))
-   (size :type integer)
-   (atime :type integer)
-   (mtime :type integer)
-   (ctime :type integer)
-   (blocks :type integer)
-   (md5 :type string)
-   (sha1 :type string)
-   (content :type string)))
+(defun mode-string-type (mode-string)
+  (let ((c (char mode-string 0)))
+    (or (car (find c +stat-mode-types+ :key #'second :test #'char=))
+	(error "Unknown mode string type : ~S" c))))
 
-(define-constant +file-type-mode-bits+
-    '((:fifo              . #o010000)
-      (:character-special . #o020000)
-      (:directory         . #o040000)
-      (:block-special     . #o060000)
-      (:file              . #o100000)
-      (:link              . #o120000)
-      (:socket            . #o140000))
-  :test 'equalp)
+(defun mode-type (mode)
+  (let ((m (logand mode #o170000)))
+    (or (car (find m +stat-mode-types+ :key #'third :test #'=))
+	(error "Unknown mode type : #o~O." m))))
 
-(defun mode-file-type (mode)
-  (car (rassoc (logand mode #o170000) +file-type-mode-bits+)))
+(defun type-mode (type)
+  (or (third (find type +stat-mode-types+ :key #'car :test #'eq))
+      (error "Unknown type ~S." type)))
 
-(defun mode-permissions (mode)
-  (let ((s (make-string 9)))
-    (setf (char s 0) (if (logtest     #o0400 mode) #\r #\-))
-    (setf (char s 1) (if (logtest     #o0200 mode) #\w #\-))
-    (setf (char s 2) (if (logtest     #o0100 mode)
-			 (if (logtest #o4000 mode) #\s #\x)
-			 (if (logtest #o4000 mode) #\S #\-)))
-    (setf (char s 3) (if (logtest     #o0040 mode) #\r #\-))
-    (setf (char s 4) (if (logtest     #o0020 mode) #\w #\-))
-    (setf (char s 5) (if (logtest     #o0010 mode)
-			 (if (logtest #o2000 mode) #\s #\x)
-			 (if (logtest #o2000 mode) #\S #\-)))
-    (setf (char s 6) (if (logtest     #o0004 mode) #\r #\-))
-    (setf (char s 7) (if (logtest     #o0002 mode) #\w #\-))
-    (setf (char s 8) (if (logtest     #o0001 mode)
-			 (if (logtest #o1000 mode) #\s #\x)
-			 (if (logtest #o1000 mode) #\S #\-)))
-    s))
+(defun type-mode-char (type)
+  (or (second (find type +stat-mode-types+ :key #'car :test #'eq))
+      (error "Unknown type ~S." type)))
 
-(define-syntax stat<1> ((#'sh-parse-integer dev ino mode nlink uid gid
-					    rdev size atime mtime ctime
-					    blksize blocks flags)
-			file)
-  "^([0-9]+) ([0-9]+) ([0-9]+) ([0-9]+) ([0-9]+) ([0-9]+) ([0-9]+) ([0-9]+) ([0-9]+) ([0-9]+) ([0-9]+) ([0-9]+) ([0-9]+) ([0-9]+) (.+)$"
-  "Syntax for raw stat(1) output."
-  (values file dev ino mode nlink uid gid rdev size
-	  atime mtime ctime blksize blocks flags))
+(defun mode-string (mode)
+  (str (type-mode-char (mode-type mode))
+       (if (logtest     #o0400 mode) #\r #\-)
+       (if (logtest     #o0200 mode) #\w #\-)
+       (if (logtest     #o0100 mode)
+	   (if (logtest #o4000 mode) #\s #\x)
+	   (if (logtest #o4000 mode) #\S #\-))
+       (if (logtest     #o0040 mode) #\r #\-)
+       (if (logtest     #o0020 mode) #\w #\-)
+       (if (logtest     #o0010 mode)
+	   (if (logtest #o2000 mode) #\s #\x)
+	   (if (logtest #o2000 mode) #\S #\-))
+       (if (logtest     #o0004 mode) #\r #\-)
+       (if (logtest     #o0002 mode) #\w #\-)
+       (if (logtest     #o0001 mode)
+	   (if (logtest #o1000 mode) #\s #\x)
+	   (if (logtest #o1000 mode) #\S #\-))))
 
-(defun gather-file-stat (resource)
-  (with-slots (name type permissions owner group
-		    size atime mtime ctime blocks) resource
-    (iterate (stat<1> (name* dev* ino* mode* nlink* uid* gid* rdev* size*
-			     atime* mtime* ctime* blksize* blocks* flags*)
-		      in (stat name))
-	     (when (string= name name*)
-	       (setf type (mode-file-type mode*)
-		     permissions (mode-permissions mode*)
-		     owner (gather-uid-user-name uid*)
-		     group (gather-gid-group-name gid*)
-		     size size* atime atime* mtime mtime* ctime ctime*
-		     blocks blocks*)
-	       (return resource)))))
-
-(define-syntax cksum<1> (algo sum file)
-    "(\\S+) \\((.*)\\) = (\\S+)"
-  "Syntax for cksum(1) output.")
-
-(defun gather-file-cksum (resource &rest algorithms)
-  (let ((name (resource-name resource)))
-    (iterate (cksum<1> (algo* file* sum*)
-		       in (run "cksum -a ~{~A~^,~} ~A"
-			       algorithms (sh-quote name)))
-	     (for algo = (find algo* algorithms
-			       :key #'symbol-name
-			       :test #'string-equal))
-	     (when (and algo (string= name file*))
-	       (setf (resource-property resource algo) sum*))))
-  resource)
-
-(defmethod gather-resource ((resource file) name)
-  (gather-file-stat resource))
-
-(defun permissions-mode-bits (s)
-  (declare (type (string 9) s))
+(defun parse-mode-string (s)
+  (declare (type (string 10) s))
   (logior
    (ecase (char s 0) (#\- 0) (#\r #o0400))
    (ecase (char s 1) (#\- 0) (#\w #o0200))
@@ -230,11 +180,112 @@
    (ecase (char s 7) (#\- 0) (#\w #o0002))
    (ecase (char s 8) (#\- 0) (#\x #o0001) (#\S #o1000) (#\s #o1001))))
 
-(defmethod (setf resource-property) :after ((value string)
-					    (resource file)
-					    (property (eql :content)))
-  (dolist (digest '(:md5 :sha1))
-    (setf (resource-property resource digest)
-	  (ironclad:digest-sequence
-	   digest
-	   (trivial-utf-8:string-to-utf-8-bytes value)))))
+;;  Filesystem nodes
+
+(define-resource-class vnode ()
+  ()
+  ((probe-vnode-using-ls :properties (mode links owner group size mtime))
+   (probe-vnode-using-stat :properties (type permissions owner group size
+					     atime mtime ctime blocks))))
+
+(defun make-one-second-span (time)
+  (let ((y   (chronicity:year-of   time))
+	(m   (chronicity:month-of  time))
+	(d   (chronicity:day-of    time))
+	(h   (chronicity:hour-of   time))
+	(min (chronicity:minute-of time))
+	(sec (chronicity:sec-of    time)))
+    (make-instance 'chronicity:span
+		   :start (chronicity:make-datetime y m d h min sec)
+		   :end   (chronicity:make-datetime y m d h min (1+ sec)))))
+
+(define-syntax ls<1>-lT (mode
+			 (#'sh-parse-integer links)
+			 owner
+			 group
+			 (#'sh-parse-integer size)
+			 (#'chronicity:parse time)
+			 name)
+  #~|^([-a-zA-Z]{10})\s+([0-9]+)\s+(\S+)\s+(\S+)\s+([0-9]+)\s+(\S+ \S+ \S+ \S+)\s+(.+)$|
+  "Syntax for `ls -lT` output. See ls(1)."
+  (values name mode links owner group size time))
+
+(defmethod probe-vnode-using-ls ((vnode vnode) (os os-unix))
+  (let ((id (resource-id vnode)))
+    (iter (ls<1>-lT (name mode links owner group size mtime)
+		    in (ls "-ldT" id))
+	  (when (string= id name)
+	    (return (list 'mode mode
+			  'links links
+			  'owner owner
+			  'group group
+			  'size size
+			  'mtime (make-one-second-span mtime)))))))
+
+(defun parse-unix-timestamp (x)
+  (let ((n (typecase x
+	     (string (parse-integer x))
+	     (integer x))))
+    (local-time:unix-to-timestamp n)))
+
+(define-syntax stat<1>-r ((#'sh-parse-integer
+			   dev ino mode links uid gid rdev size)
+			  (#'parse-unix-timestamp atime mtime ctime)
+			  (#'sh-parse-integer blksize blocks flags)
+			  file)
+    #~|^([0-9]+) ([0-9]+) ([0-9]+) ([0-9]+) ([0-9]+) ([0-9]+) ([0-9]+) ([0-9]+) ([0-9]+) ([0-9]+) ([0-9]+) ([0-9]+) ([0-9]+) ([0-9]+) (.+)$|
+  "Syntax for raw stat(1) output."
+  (values file dev ino mode links uid gid rdev size
+	  atime mtime ctime blksize blocks flags))
+
+(defmethod probe-vnode-using-stat ((vnode vnode) (os os-unix))
+  (let ((id (resource-id vnode)))
+    (iter (stat<1>-r (name dev ino mode links uid gid rdev size
+			   atime mtime ctime blksize blocks flags)
+		     in (stat "-r" id))
+	  (when (string= id name)
+	    (return (list 'dev dev
+			  'ino ino
+			  'mode (mode-string mode)
+			  'links links
+			  'uid uid
+			  'gid gid
+			  'rdev rdev
+			  'size size
+			  'atime atime
+			  'mtime mtime
+			  'ctime ctime
+			  'blksize blksize
+			  'blocks blocks
+			  'flags flags))))))
+
+;;  Regular file
+
+(eval-when (:compile-toplevel :load-toplevel :execute)
+  (defvar *cksum-algorithms*
+    '(cksum md4 md5 rmd160 sha1 sha224 sha256 sha384 sha512 sum sysvsum)))
+
+(define-resource-class file (vnode) ()
+  #.(iter (for algorithm in *cksum-algorithms*)
+	  (collect `(,(sym 'probe-file-cksum- algorithm)
+		      :properties (,algorithm)))))
+
+(define-syntax cksum<1> (algo sum file)
+    #~|(\S+) \((.*)\) = (\S+)|
+  "Syntax for cksum(1) output.")
+
+#.(cons 'progn
+	(iter (for algorithm in *cksum-algorithms*)
+	      (for name = (sym 'probe-file-cksum- algorithm))
+	      (collect `(defgeneric ,name (file)))
+	      (collect `(defmethod ,name ((file file))
+			  (let ((id (resource-id file)))
+			    (iter (cksum<1> (algo name sum)
+					    in (run "cksum -a ~A ~A"
+						    ',algorithm
+						    (sh-quote id)))
+				  (when (and (string= ',algorithm algo)
+					     (string= id name))
+				    (return (list ',algorithm sum)))))))))
+
+(disable-re-syntax)

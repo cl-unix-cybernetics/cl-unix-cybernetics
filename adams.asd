@@ -27,12 +27,15 @@
   :version "0.1"
   :description "Remote system administration tools"
   :depends-on ("alexandria"
+	       "chronicity"
 	       "cl-base64"
 	       "cl-debug"
 	       "cl-ppcre"
 	       "closer-mop"
 	       "ironclad"
 	       "iterate"
+	       "re"
+	       "str"
 	       "trivial-utf-8")
   :components
   ((:file "package")
@@ -41,7 +44,7 @@
 	    ((:file "shell")
 	     #+sbcl
 	     (:file "sb-shell" :depends-on ("shell"))))
-   (:file "resource" :depends-on ("shell"))
-   (:file "manifest" :depends-on ("resource"))
-   (:file "host" :depends-on ("manifest"))
+   (:file "host" :depends-on ("shell"))
+   (:file "os" :depends-on ("host"))
+   (:file "resource" :depends-on ("os"))
    (:file "unix" :depends-on ("resource"))))

@@ -18,17 +18,38 @@
 
 (in-package :adams)
 
+;;  OS
+
+(defclass os ()
+  ((machine :initarg :machine
+	    :reader os-machine
+	    :type string)
+   (name :initarg :name
+	 :reader os-name
+	 :type string)
+   (release :initarg :release
+	    :reader os-release
+	    :type string)
+   (version :initarg :version
+	    :reader os-version
+	    :type string)))
+
+(defmethod print-object ((os os) stream)
+  (print-unreadable-object (os stream :type t :identity (not *print-pretty*))
+    (with-slots (machine name release version) os
+    (format stream "~A ~A ~A ~A"
+	    name release machine version))))
+
 ;;  Host
 
 (defclass host ()
-  ((name :type string
-	 :initarg :hostname
-	 :reader hostname)
-   (shell :type shell
-	  :initarg :shell)
-   (manifest :type manifest
-	     :initarg :manifest
-	     :reader host-manifest)))
+  ((name :initarg :hostname
+	 :reader hostname
+	 :type string)
+   (shell :initarg :shell
+	  :type shell)
+   (os :reader host-os
+       :type os)))
 
 (defmethod print-object ((host host) stream)
   (print-unreadable-object (host stream :type t :identity t)
@@ -71,11 +92,6 @@
 (defmethod host-run ((hostname string) command &rest format-args)
   (with-connected-host (host hostname)
     (apply #'host-run host command format-args)))
-
-;;  Host manifest
-
-(defmethod slot-unbound (class (host host) (slot-name (eql 'manifest)))
-  (setf (slot-value host 'manifest) (manifest (hostname host))))
 
 ;;  localhost
 

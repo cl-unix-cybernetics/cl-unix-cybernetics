@@ -19,7 +19,7 @@
 (in-package :cl-user)
 
 (defpackage :adams
-  (:use :alexandria :cl :debug :iterate)
+  (:use :alexandria :cl :debug :iterate :re :str)
   (:export
    ;;  Shell
    #:*default-shell-command*
