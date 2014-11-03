@@ -3,32 +3,32 @@ Adams
 
 Adams is our new cybernetic DevOps. Please welcome him and make him feel
 at home, I hope he will find a nice place to work amongst us. So far he's
-been a brilliant student though a bit dumb and formal... err..
+been a brilliant student though a bit dumb and formal, I hope he will find
+a warm and welcoming place in our hearts.
 For the next months he will remain in formation so if you would please
 consider handing him any rookie task you might have he shall gladly take
-them upon him and probably fail but that's what unpaid interns are for, right ?
+them upon him and will probably crash the system and need your help to fix it
+but, hey, that's what unpaid interns are for, right ?
 
 Current status
 --------------
 
-Adams is currently able to write shell scripts to gather information
-about current system status.
+Adams is currently able to use a local shell or connect to remote hosts via
+ssh.
+He is quite the hardcore hacker wannabe using only /bin/sh though ksh and
+bash suit him fine too.
+He's still green but he can already gather basic information about users,
+groups and files.
 
-For now he can handle Unix hosts through shell commands.
-
-Roadmap
--------
-
-Our goal is to have him connect using SSH and once connected check if the
-system is in good shape and otherwise bring it in line with the
-requirements, using shell commands just like your regular sysadmin.
+We are currently teaching him about new kinds of resources and how to read
+resource specification manifests.
 
 Security design
 ---------------
 
 You should only allow Adams what you would allow your system operators :
   - a shell accessible through SSH using a public key
-  - sudo permissions
+  - apropriate sudo permissions
 
 All commands issued to the remote hosts can be logged.
 
