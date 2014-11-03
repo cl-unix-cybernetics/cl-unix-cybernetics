@@ -1,7 +1,7 @@
 ;;
 ;;  adams  -  Remote system administration tools
 ;;
-;;  Copyright 2013 Thomas de Grivel <billitch@gmail.com>
+;;  Copyright 2013,2014 Thomas de Grivel <thomas@lowh.net>
 ;;
 ;;  Permission to use, copy, modify, and distribute this software for any
 ;;  purpose with or without fee is hereby granted, provided that the above
@@ -68,9 +68,8 @@
 	(sb-ext:process-close process)))))
 
 (defmethod shell-in :after (data (shell sb-shell))
-  (when (find 'sb-shell *debug*)
-    (format *debug-io* "~A" data)
-    (force-output *debug-io*))
+  (when (debug-p :sb-shell)
+    (debug-out "~A" data))
   (force-output (sb-ext:process-input (shell-process shell))))
 
 (defmethod shell-in ((data string)
@@ -80,16 +79,13 @@
 (defmethod shell-out/line ((shell sb-shell))
   (let ((out (read-line (sb-ext:process-output (shell-process shell)) nil nil)))
     (when (and out (debug-p :sb-shell))
-      (format *debug-io* "~A~%" out)
-      (force-output *debug-io*))
+      (debug-out "~A~%" out))
     out))
 
 (defmethod shell-err ((shell sb-shell))
  (let ((err (read-string (sb-ext:process-error (shell-process shell)))))
-   (when (or (find 'shell *debug*)
-	     (find 'sb-shell *debug*))
-     (format *debug-io* "~A" err)
-     (force-output *debug-io*))
+   (when (debug-p (or :sb-shell))
+     (debug-out "~A" err))
    err))
 
 (defmethod shell-err/line ((shell sb-shell))

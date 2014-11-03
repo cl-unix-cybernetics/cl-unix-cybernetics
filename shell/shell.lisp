@@ -1,7 +1,7 @@
 ;;
 ;;  adams  -  Remote system administration tools
 ;;
-;;  Copyright 2013 Thomas de Grivel <billitch@gmail.com>
+;;  Copyright 2013,2014 Thomas de Grivel <thomas@lowh.net>
 ;;
 ;;  Permission to use, copy, modify, and distribute this software for any
 ;;  purpose with or without fee is hereby granted, provided that the above
@@ -18,19 +18,19 @@
 
 (in-package :adams)
 
-(defvar *debug* '(:shell))
 (defvar *default-shell-command* "/bin/sh")
 (defparameter *shell-signal-errors* nil)
+
+(setf (debug-p :shell) t)
 
 ;;  String functions
 
 (defun read-string (stream)
   (with-output-to-string (out)
-    (do ((c #1=(when (listen stream)
-		 (read-char stream))
-	    #1#))
-	((null c))
-      (write-char c out))))
+    (loop for c = (when (listen stream)
+		    (read-char stream))
+       while c
+       do (write-char c out))))
 
 (defun make-random-bytes (length)
   (let ((seq (make-array length :element-type '(unsigned-byte 8))))
@@ -43,6 +43,11 @@
 						  (ceiling length 4/3))
 						 :uri t)
 	  0 length))
+
+(defun debug-out (fmt &rest args)
+  (let ((out *debug-io*))
+    (apply #'format out fmt args)
+    (force-output out)))
 
 ;;  Errors
 
@@ -92,7 +97,10 @@ Error: ~S"
 	    :reader shell-command)
    (delimiter :type string
 	      :reader shell-delimiter
-	      :initform (make-delimiter))))
+	      :initform (make-delimiter))
+   (log-stream :initarg :log-stream
+	       :initform t
+	       :reader shell-log-stream)))
 
 (defgeneric shell-pid (shell))
 (defgeneric shell-new-delimiter (shell))
@@ -103,6 +111,20 @@ Error: ~S"
 (defgeneric shell-status (shell))
 (defgeneric shell-close (shell))
 (defgeneric shell-closed-p (shell))
+(defgeneric shell-run-command (command shell))
+(defgeneric shell-log (shell fmt &rest args))
+(defgeneric shell-log-p (shell))
+
+(defmethod shell-log-p ((shell shell))
+  (when (shell-log-stream shell)
+    t))
+
+(defmethod shell-log ((shell shell) (fmt string) &rest args)
+  (let ((log (shell-log-stream shell)))
+    (when log
+      (format log "~D" (shell-pid shell))
+      (apply #'format log fmt args)
+      (force-output log))))
 
 (defmethod shell-status ((shell shell))
   (let* ((delim (make-delimiter))
@@ -116,31 +138,28 @@ Error: ~S"
 			    (and (< len (length line))
 				 (string= delim line :end2 len)))
 			(when line
-			  (when (find 'shell *debug*)
-			    (format *debug-io* "$ ")
-			    (force-output *debug-io*))
+			  (when (debug-p :shell*)
+			    (debug-out "$ "))
 			  (parse-integer line :start len)))
 		     (when prev
-		       (when (find 'shell *debug*)
-			 (format *debug-io* "~A~%" prev)
-			 (force-output *debug-io*))
+		       (when (debug-p :shell*)
+			 (debug-out "~A~%" prev))
 		       (setf (cdr lines-tail) (cons prev nil)
 			     lines-tail (cdr lines-tail)))))
 	   (out (cdr lines-head))
 	   (err (shell-err/line shell)))
-      (when (find :shell *debug*)
+      (when (shell-log-p shell)
 	(dolist (line out)
-	  (format t "~D│ ~A~%" (shell-pid shell) line))
+	  (shell-log shell "│ ~A~%" line))
 	(dolist (line err)
-	  (format t "~D┃ ~A~&" (shell-pid shell) line)))
+	  (shell-log shell "┃ ~A~&" line))
+	(shell-log shell   " ⇒ ~D~%" status))
       (values status out err))))
 
 ;;  Run command
 
-(defgeneric shell-run-command (command shell))
-
 (defmethod shell-run-command ((command string) (shell shell))
-  (when (find :shell *debug*)
+  (when (debug-p :shell)
     (format t "~D╭ $ ~A~%" (shell-pid shell) command))
   (shell-in command shell)
   (shell-status shell))
