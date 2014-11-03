@@ -1,7 +1,7 @@
 ;;
 ;;  adams  -  Remote system administration tools
 ;;
-;;  Copyright 2013,2014 Thomas de Grivel <thomas@lowh.net>
+;;  Copyright 2014 Thomas de Grivel <thomas@lowh.net>
 ;;
 ;;  Permission to use, copy, modify, and distribute this software for any
 ;;  purpose with or without fee is hereby granted, provided that the above
@@ -16,36 +16,10 @@
 ;;  OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
 ;;
 
-(in-package :cl-user)
+(in-package :adams)
 
-(require :adams)
+(define-resource-class openbsd-pkg ()
+  ()
+  (probe-openbsd-pkg :properties (flavor version)))
 
-(in-package :adams-user)
-
-;; TEST
-
-#+nil
-(untrace shell-status)
-
-(setf (debug-p :shell) t)
-
-(with-host "h"
-  (run "hostname && false")
-  (run "pwd")
-  (run "ls")
-  (run "exit"))
-
-(with-manifest "h"
-  (make-instance 'user :name "vmail"
-		 :shell "/bin/ksh"
-		 :home "/var/qmail/domains"
-		 :gid 13000
-		 :uid 13000))
-
-(adams::apply-manifest "h")
-
-(manifest-resources (manifest "h"))
-
-(apply-manifest "h")
-
-(remove-manifest "h")
+(run "pkg_info -q | grep emacs-")

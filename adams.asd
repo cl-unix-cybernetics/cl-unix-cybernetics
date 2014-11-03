@@ -1,7 +1,7 @@
 ;;
 ;;  adams  -  Remote system administration tools
 ;;
-;;  Copyright 2013 Thomas de Grivel <billitch@gmail.com>
+;;  Copyright 2013,2014 Thomas de Grivel <thomas@lowh.net>
 ;;
 ;;  Permission to use, copy, modify, and distribute this software for any
 ;;  purpose with or without fee is hereby granted, provided that the above
@@ -44,7 +44,21 @@
 	    ((:file "shell")
 	     #+sbcl
 	     (:file "sb-shell" :depends-on ("shell"))))
-   (:file "host" :depends-on ("shell"))
-   (:file "os" :depends-on ("host"))
-   (:file "resource" :depends-on ("os"))
-   (:file "unix" :depends-on ("resource"))))
+   (:module "core" :depends-on ("package" "shell")
+	    :components
+	    ((:file "defs")
+	     (:file "host"     :depends-on ("defs" "os"))
+	     (:file "os")
+	     (:file "probe"    :depends-on ("defs" "host"))
+	     (:file "resource" :depends-on ("defs" "probe"))
+	     (:file "spec"     :depends-on ("defs" "resource"))))
+   (:module "unix" :depends-on ("package" "shell" "core")
+	    :components
+	    ((:file "commands")
+	     (:file "defs")
+	     #+openbsd
+	     (:file "openbsd" :depends-on ("commands" "defs"))
+	     (:file "probes"  :depends-on ("commands" "defs"
+					   "stat" "syntaxes"))
+	     (:file "stat")
+	     (:file "syntaxes")))))

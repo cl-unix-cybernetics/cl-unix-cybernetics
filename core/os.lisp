@@ -16,36 +16,23 @@
 ;;  OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
 ;;
 
-(in-package :cl-user)
+(in-package :adams)
 
-(require :adams)
+;;  UNIX
 
-(in-package :adams-user)
+(defclass os-unix (os) ())
 
-;; TEST
+;;  Linux
 
-#+nil
-(untrace shell-status)
+(defclass os-linux (os-unix) ())
 
-(setf (debug-p :shell) t)
+;;  BSD
 
-(with-host "h"
-  (run "hostname && false")
-  (run "pwd")
-  (run "ls")
-  (run "exit"))
+(defclass os-bsd (os-unix) ())
+(defclass os-freebsd (os-bsd) ())
+(defclass os-openbsd (os-bsd) ())
+(defclass os-darwin (os-bsd) ())
 
-(with-manifest "h"
-  (make-instance 'user :name "vmail"
-		 :shell "/bin/ksh"
-		 :home "/var/qmail/domains"
-		 :gid 13000
-		 :uid 13000))
+;;  Windows
 
-(adams::apply-manifest "h")
-
-(manifest-resources (manifest "h"))
-
-(apply-manifest "h")
-
-(remove-manifest "h")
+(defclass os-windows (os) ())

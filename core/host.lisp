@@ -1,7 +1,7 @@
 ;;
 ;;  adams  -  Remote system administration tools
 ;;
-;;  Copyright 2013 Thomas de Grivel <billitch@gmail.com>
+;;  Copyright 2013,2014 Thomas de Grivel <thomas@lowh.net>
 ;;
 ;;  Permission to use, copy, modify, and distribute this software for any
 ;;  purpose with or without fee is hereby granted, provided that the above
@@ -18,49 +18,17 @@
 
 (in-package :adams)
 
-;;  OS
-
-(defclass os ()
-  ((machine :initarg :machine
-	    :reader os-machine
-	    :type string)
-   (name :initarg :name
-	 :reader os-name
-	 :type string)
-   (release :initarg :release
-	    :reader os-release
-	    :type string)
-   (version :initarg :version
-	    :reader os-version
-	    :type string)))
-
-(defmethod print-object ((os os) stream)
-  (print-unreadable-object (os stream :type t :identity (not *print-pretty*))
-    (with-slots (machine name release version) os
-    (format stream "~A ~A ~A ~A"
-	    name release machine version))))
-
 ;;  Host
 
-(defclass host ()
-  ((name :initarg :hostname
-	 :reader hostname
-	 :type string)
-   (shell :initarg :shell
-	  :type shell)
-   (os :reader host-os
-       :type os)))
+(defun hostname (host)
+  (resource-id (the host host)))
 
+#+nil
 (defmethod print-object ((host host) stream)
   (print-unreadable-object (host stream :type t :identity t)
     (write-string (hostname host) stream)))
 
 ;;  Host shell
-
-(defgeneric host-connect (host))
-(defgeneric host-disconnect (host))
-(defgeneric host-shell (host))
-(defgeneric (setf host-shell) (shell host))
 
 (defmethod host-shell ((host host))
   (if (slot-boundp host 'shell)
@@ -77,11 +45,9 @@
 
 (defmacro with-connected-host ((var hostname) &body body)
   (let ((g!host (gensym "HOST-")))
-    `(let ((,g!host (make-instance 'ssh-host :hostname ,hostname)))
+    `(let ((,g!host (make-instance 'ssh-host :id ,hostname)))
        (unwind-protect (let ((,var ,g!host)) ,@body)
 	 (host-disconnect ,g!host)))))
-
-(defgeneric host-run (host command &rest format-args))
 
 (defmethod host-run ((host host) (command string) &rest format-args)
   (let ((shell (host-shell host)))
@@ -97,14 +63,12 @@
 
 (defvar *localhost* (load-time-value
 		     (make-instance 'host
-				    :hostname "localhost")))
+				    :id "localhost")))
 
 (defmethod host-connect ((host (eql *localhost*)))
   (setf (host-shell host) (make-shell)))
 
 ;;  SSH host
-
-(defclass ssh-host (host) ())
 
 (defmethod host-connect ((host ssh-host))
   (setf (host-shell host) (make-shell "/usr/bin/ssh" (hostname host))))
@@ -120,3 +84,42 @@
 
 (defun run (command &rest format-args)
   (apply #'host-run *host* command format-args))
+
+;;  OS
+
+(defmethod print-object ((os os) stream)
+  (print-unreadable-object (os stream :type t :identity (not *print-pretty*))
+    (with-slots (machine name release version) os
+    (format stream "~A ~A ~A ~A"
+	    name release machine version))))
+
+(defmethod host-os ((host host))
+  (getf (probed-properties host) 'os))
+
+;;  Host probes
+
+(defmethod probe-os-using-uname ((host host) (os t))
+  (multiple-value-bind (name hostname release version machine) (uname)
+    (declare (ignore hostname))
+    (let ((class (flet ((try (&rest parts)
+			  (when-let ((s (find-symbol (string-upcase (str 'os- parts))
+						     #.*package*)))
+			    (ignore-errors (find-class s)))))
+		   (or (try name '- release '- machine '- version)
+		       (try name '- release '- machine)
+		       (try name '- release '- version)
+		       (try name '- release)
+		       (try name '- machine '- version)
+		       (try name '- machine)
+		       (try name '- version)
+		       (try name)
+		       (warn "Unknown OS : ~A" name)))))
+      (when class
+	(list 'os (make-instance class
+				 :machine machine
+				 :name name
+				 :release release
+				 :version version))))))
+
+(defmethod probe-hostname ((host host) (os os-unix))
+  (cons 'hostname (run "hostname")))

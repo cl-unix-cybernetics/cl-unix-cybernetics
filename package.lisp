@@ -1,7 +1,7 @@
 ;;
 ;;  adams  -  Remote system administration tools
 ;;
-;;  Copyright 2013 Thomas de Grivel <billitch@gmail.com>
+;;  Copyright 2013,2014 Thomas de Grivel <thomas@lowh.net>
 ;;
 ;;  Permission to use, copy, modify, and distribute this software for any
 ;;  purpose with or without fee is hereby granted, provided that the above
@@ -20,46 +20,89 @@
 
 (defpackage :adams
   (:use :alexandria :cl :debug :iterate :re :str)
+  (:shadow #:directory)
   (:export
    ;;  Shell
    #:*default-shell-command*
    #:*shell-signal-errors*
    #:shell-error
+   #:shell-error-command
+   #:shell-error-status
+   #:shell-error-out
+   #:shell-error-err
    #:sh-quote
    #:sh-parse-integer
    #:ascii-set-graphics-mode
    #:shell
    #:shell-pid
    #:shell-in
+   #:shell-out/line
+   #:shell-err
+   #:shell-err/line
+   #:shell-status
    #:shell-close
+   #:shell-closed-p
    #:shell-run-command
    #:with-shell
    #:shell-run
    #:make-shell
+   ;;  Probe
+   #:probe
+   #:probe-name
+   #:probe-properties
+   #:probe-generic-function
+   ;;  Resource metaclass
+   #:compute-probes
+   #:define-resource-class
+   #:direct-probes
+   #:probe-class
+   #:probes-of
+   #:resource-class
+   ;;  Resource
+   #:add-resource
+   #:get-resource
+   #:make-resource
+   #:make-*resources*
+   #:probed-properties
+   #:resource
+   #:resource-type
+   #:specified-properties
+   #:specified-property
+   ;;  Specification
+   #:specify
+   #:parse-specification
+   #:parse-next-specification
+   ;;  OS
+   #:os
+   #:os-bsd
+   #:os-darwin
+   #:os-freebsd
+   #:os-linux
+   #:os-machine
+   #:os-name
+   #:os-openbsd
+   #:os-release
+   #:os-unix
+   #:os-version
+   #:os-windows
+   ;;  Probing resources
+   #:find-probe
+   #:get-probed
+   #:resource-probe-error
+   #:resource-probe-not-found
+   #:resource-probe-failed
    ;;  Host
    #:*host*
-   #:*localhost*
    #:host
    #:host-connect
    #:host-disconnect
-   #:with-connected-host
+   #:host-shell
    #:host-run
-   #:ssh-host
-   #:with-host
+   #:*localhost*
    #:run
-   ;;  Resource
-   #:resource-class
-   #:resource-class-instances
-   #:define-resource-class
-   #:resource
-   #:gather-resource
-   ;;  Manifest
-   #:manifest
-   #:manifest-resources
-   #:find-manifest
-   #:remove-manifest
-   #:with-manifest
-   #:define-resource
+   #:ssh-host
+   #:with-connected-host
+   #:with-host
    ;;  Unix
    #:+timestamp-offset+
    #:timestamp-to-universal-time
@@ -80,3 +123,5 @@
 
 (defpackage :adams-user
   (:use :adams :cl :cl-debug))
+
+(setf (symbol-function 'adams::directory) #'cl:directory)

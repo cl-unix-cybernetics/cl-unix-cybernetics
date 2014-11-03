@@ -16,36 +16,24 @@
 ;;  OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
 ;;
 
-(in-package :cl-user)
+(in-package :adams)
 
-(require :adams)
+(in-re-readtable)
 
-(in-package :adams-user)
+(defun uname ()
+  (let ((uname-a (first (run "uname -a"))))
+    (flet ((try-re (re)
+	     (re-bind re (os-name node-name os-release os-version machine) uname-a)))
+      (try-re #~"^(\S+) (\S+) (\S+) (.+) (\S+)$"))))
 
-;; TEST
+(defun grep (pattern &rest files)
+  (run "grep ~A~{ ~A~}" (sh-quote pattern) (mapcar #'sh-quote files)))
 
-#+nil
-(untrace shell-status)
+(defun egrep (pattern &rest files)
+  (run "egrep ~A~{ ~A~}" (sh-quote pattern) (mapcar #'sh-quote files)))
 
-(setf (debug-p :shell) t)
+(defun stat (options &rest files)
+  (run "stat ~A~{ ~A~}" options (mapcar #'sh-quote files)))
 
-(with-host "h"
-  (run "hostname && false")
-  (run "pwd")
-  (run "ls")
-  (run "exit"))
-
-(with-manifest "h"
-  (make-instance 'user :name "vmail"
-		 :shell "/bin/ksh"
-		 :home "/var/qmail/domains"
-		 :gid 13000
-		 :uid 13000))
-
-(adams::apply-manifest "h")
-
-(manifest-resources (manifest "h"))
-
-(apply-manifest "h")
-
-(remove-manifest "h")
+(defun ls (options &rest files)
+  (run "ls ~A~{ ~A~}" options (mapcar #'sh-quote files)))
