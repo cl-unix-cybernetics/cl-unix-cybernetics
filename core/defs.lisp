@@ -34,6 +34,17 @@
 
 (defgeneric probe-generic-function (probe))
 
+;;  Operations
+
+(defclass operation ()
+  ((name :initarg :name
+	 :initform (error "Operation without a name.")
+	 :reader op-name
+	 :type symbol)
+   (properties :initarg :properties
+	       :initform (error "Operation without properties.")
+	       :reader op-properties)))
+
 ;;  Resource metaclass
 
 (defvar *the-resource-class*)
@@ -43,22 +54,32 @@
 		  :initform ()
 		  :reader direct-probes
 		  :type list)
+   (direct-ops :initarg :direct-ops
+	       :initform ()
+	       :reader direct-ops
+	       :type list)
    (probes :reader probes-of
-	   :type list))
+	   :type list)
+   (ops :reader ops-of
+	:type list))
   (:default-initargs :direct-superclasses (list *the-resource-class*)))
 
 (defmethod closer-mop:validate-superclass ((c resource-class)
 					   (super standard-class))
   t)
 
-(defmacro define-resource-class (name direct-superclasses
-				 direct-slots direct-probes
-				 &optional options)
+(defmacro define-resource-class (name &optional
+                                        direct-superclasses
+                                        direct-slots
+                                        direct-probes
+                                        direct-ops
+                                        options)
   `(defclass ,name ,(or direct-superclasses
 			'(resource))
      ,direct-slots
-     (:metaclass resource-class)
+     (:direct-ops ,@direct-ops)
      (:direct-probes ,@direct-probes)
+     (:metaclass resource-class)
      ,@options))
 
 (defgeneric probe-class (resource-class))
