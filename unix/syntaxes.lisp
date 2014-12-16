@@ -77,6 +77,10 @@
   (values file dev ino mode links uid gid rdev size
 	  atime mtime ctime blksize blocks flags))
 
+(define-syntax cksum<1>-legacy (sum size file)
+    #~|(\S+) (\S+) (\S+)|
+  "Syntax for cksum(1) legacy output.")
+
 (define-syntax cksum<1> (algo sum file)
     #~|(\S+) \((.*)\) = (\S+)|
   "Syntax for cksum(1) output.")

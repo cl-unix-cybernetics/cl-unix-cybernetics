@@ -102,6 +102,8 @@
 		      :accessor probed-properties))
   (:metaclass resource-class))
 
+(defgeneric resource-probes-properties (resource))
+
 (setq *the-resource-class* (find-class 'resource))
 
 ;;  Resource registry
@@ -146,6 +148,27 @@
 	    :reader os-version
 	    :type string)))
 
+;;  Host
+
+(define-resource-class host (resource-tree)
+  ((shell :initarg :shell
+	  :type shell))
+  ((probe-os-using-uname :properties (os))
+   (probe-hostname :properties (hostname))
+   (probe-uptime :properties (uptime))))
+
+(defgeneric host-connect (host))
+(defgeneric host-disconnect (host))
+(defgeneric host-shell (host))
+(defgeneric (setf host-shell) (shell host))
+
+(defgeneric host-run (host command &rest format-args))
+
+(define-resource-class ssh-host (host))
+
+(defvar *localhost*)
+(defvar *host*)
+
 ;;  Probing resources
 
 (define-condition resource-probe-error (error)
@@ -166,31 +189,3 @@
 (defgeneric get-probed (resource property))
 
 (defvar *resource*)
-
-;;  BSD cksum
-
-(defvar *cksum-algorithms*
-  '(cksum md4 md5 rmd160 sha1 sha224 sha256 sha384 sha512 sum sysvsum))
-
-;;  Host
-
-(define-resource-class host (resource-tree)
-  ((shell :initarg :shell
-	  :type shell))
-  ((probe-os-using-uname :properties (os))
-   (probe-hostname :properties (hostname))
-   (probe-uptime :properties (uptime))))
-
-(defgeneric host-connect (host))
-(defgeneric host-disconnect (host))
-(defgeneric host-shell (host))
-(defgeneric (setf host-shell) (shell host))
-
-(defgeneric host-run (host command &rest format-args))
-
-(define-resource-class ssh-host (host)
-  ()
-  ())
-
-(defvar *localhost*)
-(defvar *host*)

@@ -96,6 +96,7 @@
    #:host
    #:host-connect
    #:host-disconnect
+   #:host-os
    #:host-shell
    #:host-run
    #:*localhost*

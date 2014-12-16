@@ -38,6 +38,24 @@
 (defun resource-type (resource)
   (class-name (class-of resource)))
 
+(defmethod resource-probes-properties ((res resource))
+  (let ((properties))
+    (dolist (probe (probes-of res))
+      (dolist (property (probe-properties probe))
+        (pushnew property properties)))
+    (sort properties #'string<)))
+
+#+nil
+(resource-probes-properties (resource 'file "/"))
+
+(defun probe-all-properties (res)
+  (dolist (p (resource-probes-properties res))
+    (get-probed res p))
+  (probed-properties res))
+
+#+nil
+(probe-all-properties (resource 'file "/"))
+
 ;;  Resource tree
 
 (defmethod print-object ((r resource-tree) stream)

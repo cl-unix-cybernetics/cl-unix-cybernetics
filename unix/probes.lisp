@@ -100,14 +100,27 @@
 
 #.(cons 'progn
 	(iter (for algorithm in *cksum-algorithms*)
+              (for legacy = (member algorithm *cksum-legacy-algorithms*))
 	      (for name = (sym 'probe-file-cksum- algorithm))
 	      (collect `(defgeneric ,name (file os)))
 	      (collect `(defmethod ,name ((file file) (os os-unix))
 			  (let ((id (resource-id file)))
-			    (iter (cksum<1> (algo name sum)
-					    in (run "cksum -a ~A ~A"
-						    ',algorithm
-						    (sh-quote id)))
-				  (when (and (string= ',algorithm algo)
-					     (string= id name))
+			    (iter (,(if legacy 'cksum<1>-legacy 'cksum<1>)
+                                    ,(if legacy
+                                         '(sum size name)
+                                         '(algo name sum))
+                                    in (run ,(str "cksum -a " algorithm " ~A")
+                                            (sh-quote id)))
+				  (when ,(if legacy
+                                             `(string= id name)
+                                             `(and (string= ',algorithm algo)
+                                                   (string= id name)))
 				    (return (list ',algorithm sum)))))))))
+
+(defgeneric probe-file-content (file os))
+
+(defvar *probe-file-content-size-limit* 8192)
+
+(defmethod probe-file-content ((file file) (os os-unix))
+  (when (< (get-probed file 'size) *probe-file-content-size-limit*)
+    (list 'content (run "cat ~A" (sh-quote (resource-id file))))))

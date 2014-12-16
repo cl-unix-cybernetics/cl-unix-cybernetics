@@ -29,8 +29,14 @@
 (define-resource-class vnode ()
   ()
   ((probe-vnode-using-ls :properties (mode links owner group size mtime))
-   (probe-vnode-using-stat :properties (type permissions owner group size
-					     atime mtime ctime blocks))))
+   (probe-vnode-using-stat :properties (dev ino mode links uid gid rdev size
+                                        atime mtime ctime blksize blocks flags))))
+
+(defvar *cksum-legacy-algorithms*
+  '(cksum sum sysvsum))
+
+(defvar *cksum-algorithms*
+  `(md4 md5 rmd160 sha1 sha224 sha256 sha384 sha512 ,@*cksum-legacy-algorithms*))
 
 (define-resource-class file (vnode)
   ()

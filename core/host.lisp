@@ -94,7 +94,7 @@
 	    name release machine version))))
 
 (defmethod host-os ((host host))
-  (getf (probed-properties host) 'os))
+  (get-probed host 'os))
 
 ;;  Host probes
 
