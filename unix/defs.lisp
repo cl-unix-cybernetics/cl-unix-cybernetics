@@ -19,24 +19,27 @@
 (in-package :adams)
 
 (define-resource-class group () ()
-  ((probe-group-in-/etc/group :properties (name passwd gid members))))
+  ((probe-group-in-/etc/group :properties (:name :passwd :gid :members))))
 
 (define-resource-class user ()
   ()
   ((probe-user-in-/etc/passwd :properties (login uid gid realname home shell))
-   (probe-user-groups-in-/etc/group :properties (groups))))
+   (probe-user-groups-in-/etc/group :properties (:groups))))
 
 (define-resource-class vnode ()
   ()
   ((probe-vnode-using-ls :properties (mode links owner group size mtime))
-   (probe-vnode-using-stat :properties (dev ino mode links uid gid rdev size
-                                        atime mtime ctime blksize blocks flags))))
+   (probe-vnode-using-stat :properties (:dev :ino :mode :links :uid :gid :rdev
+                                        :size :atime :mtime :ctime :blksize
+                                        :blocks :flags))))
 
-(defvar *cksum-legacy-algorithms*
-  '(cksum sum sysvsum))
+(eval-when (:compile-toplevel :load-toplevel :execute)
 
-(defvar *cksum-algorithms*
-  `(md4 md5 rmd160 sha1 sha224 sha256 sha384 sha512 ,@*cksum-legacy-algorithms*))
+  (defvar *cksum-legacy-algorithms*
+    '(:cksum :sum :sysvsum))
+
+  (defvar *cksum-algorithms*
+    `(:md4 :md5 :rmd160 :sha1 :sha224 :sha256 :sha384 :sha512 ,@*cksum-legacy-algorithms*)))
 
 (define-resource-class file (vnode)
   ()
@@ -47,4 +50,4 @@
 
 (define-resource-class directory (vnode)
   ()
-  ((probe-directory-content :properties (content))))
+  ((probe-directory-content :properties (:content))))

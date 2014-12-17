@@ -115,11 +115,11 @@
 		       (try name)
 		       (warn "Unknown OS : ~A" name)))))
       (when class
-	(list 'os (make-instance class
+	(list :os (make-instance class
 				 :machine machine
 				 :name name
 				 :release release
 				 :version version))))))
 
 (defmethod probe-hostname ((host host) (os os-unix))
-  (cons 'hostname (run "hostname")))
+  (cons :hostname (run "hostname")))

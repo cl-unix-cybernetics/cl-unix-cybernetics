@@ -26,10 +26,10 @@
 	  (when (etypecase id
 		  (integer (= id gid))
 		  (string (string= id name)))
-	    (return (list 'name name
-			  'passwd passwd
-			  'gid gid
-			  'members members))))))
+	    (return (list :name name
+			  :passwd passwd
+			  :gid gid
+			  :members members))))))
 
 ;;  User
 
@@ -42,22 +42,22 @@
 	  (when (etypecase id
 		  (string (string= id login))
 		  (integer (= id uid)))
-	    (return (list 'login login 'uid uid 'gid gid
-			  'realname realname 'home home 'shell shell))))))
+	    (return (list :login login :uid uid :gid gid
+			  :realname realname :home home :shell shell))))))
 
 (defmethod probe-user-groups-in-/etc/group ((user user) (os os-unix))
   (let* ((id (resource-id user))
 	 (user-login (if (stringp id)
 			 id
-			 (get-probed user 'login)))
-	 (user-gid (get-probed user 'gid)))
+			 (get-probed user :login)))
+	 (user-gid (get-probed user :gid)))
     (iter (group<5> (name passwd gid members) in (grep user-login
 						       "/etc/group"))
 	  (with user-group = nil)
 	  (cond ((= user-gid gid) (setq user-group name))
 		((find user-login members :test #'string=) (collect name into groups)))
 	  (finally (let ((groups (sort groups #'string<)))
-		     (return (list 'groups (if user-group
+		     (return (list :groups (if user-group
 					       (cons user-group groups)
 					       groups))))))))
 
@@ -68,12 +68,12 @@
     (iter (ls<1>-lT (name mode links owner group size mtime)
 		    in (ls "-ldT" id))
 	  (when (string= id name)
-	    (return (list 'mode mode
-			  'links links
-			  'owner owner
-			  'group group
-			  'size size
-			  'mtime mtime))))))
+	    (return (list :mode mode
+			  :links links
+			  :owner owner
+			  :group group
+			  :size size
+			  :mtime mtime))))))
 
 (defmethod probe-vnode-using-stat ((vnode vnode) (os os-unix))
   (let ((id (resource-id vnode)))
@@ -81,20 +81,20 @@
 			   atime mtime ctime blksize blocks flags)
 		     in (stat "-r" id))
 	  (when (string= id name)
-	    (return (list 'dev dev
-			  'ino ino
-			  'mode (mode-string mode)
-			  'links links
-			  'uid uid
-			  'gid gid
-			  'rdev rdev
-			  'size size
-			  'atime atime
-			  'mtime mtime
-			  'ctime ctime
-			  'blksize blksize
-			  'blocks blocks
-			  'flags flags))))))
+	    (return (list :dev dev
+			  :ino ino
+			  :mode (mode-string mode)
+			  :links links
+			  :uid uid
+			  :gid gid
+			  :rdev rdev
+			  :size size
+			  :atime atime
+			  :mtime mtime
+			  :ctime ctime
+			  :blksize blksize
+			  :blocks blocks
+			  :flags flags))))))
 
 ;;  Regular file
 
@@ -113,14 +113,14 @@
                                             (sh-quote id)))
 				  (when ,(if legacy
                                              `(string= id name)
-                                             `(and (string= ',algorithm algo)
+                                             `(and (string= ,algorithm algo)
                                                    (string= id name)))
-				    (return (list ',algorithm sum)))))))))
+				    (return (list ,algorithm sum)))))))))
 
 (defgeneric probe-file-content (file os))
 
 (defvar *probe-file-content-size-limit* 8192)
 
 (defmethod probe-file-content ((file file) (os os-unix))
-  (when (< (get-probed file 'size) *probe-file-content-size-limit*)
-    (list 'content (run "cat ~A" (sh-quote (resource-id file))))))
+  (when (< (get-probed file :size) *probe-file-content-size-limit*)
+    (list :content (run "cat ~A" (sh-quote (resource-id file))))))

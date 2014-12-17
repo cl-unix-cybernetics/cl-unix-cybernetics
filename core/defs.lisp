@@ -153,9 +153,9 @@
 (define-resource-class host (resource-tree)
   ((shell :initarg :shell
 	  :type shell))
-  ((probe-os-using-uname :properties (os))
-   (probe-hostname :properties (hostname))
-   (probe-uptime :properties (uptime))))
+  ((probe-os-using-uname :properties (:os))
+   (probe-hostname :properties (:hostname))
+   (probe-uptime :properties (:uptime))))
 
 (defgeneric host-connect (host))
 (defgeneric host-disconnect (host))
