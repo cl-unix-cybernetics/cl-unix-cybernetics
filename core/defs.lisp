@@ -18,8 +18,12 @@
 
 (in-package :adams)
 
+;;  Misc
+
 (unless (boundp '+undefined+)
-  (defconstant +undefined+ '#:undefined))
+  (defconstant +undefined+ '+undefined+))
+
+(defmethod subclasses (class))
 
 ;;  Probe
 
@@ -106,22 +110,29 @@
 
 (setq *the-resource-class* (find-class 'resource))
 
-;;  Resource registry
+;;  Resource container
 
-(defun make-*resources* ()
+(defun make-resource-registry ()
   (make-hash-table :test 'equalp))
 
-(defvar *resources*
-  (make-*resources*))
-
-;;  Resource tree class
-
-(defclass resource-tree (resource)
+(defclass resource-container (resource)
   ((resources :initarg :resources
-	      :initform (make-*resources*)
+	      :initform (make-resource-registry)
 	      :type hashtable
-	      :reader resources-of))
+	      :reader resource-registry))
   (:metaclass resource-class))
+
+(defvar *adams*
+  (make-instance 'resource-container :id "Adams"))
+
+(defvar *parent-resource*
+  *adams*)
+
+(defgeneric clear-resources% (resource-container))
+
+(defmacro with-parent-resource (resource &body body)
+  `(let ((*parent-resource* ,(or resource '*adams*)))
+     ,@body))
 
 ;;  Specifying resources
 
@@ -150,18 +161,23 @@
 
 ;;  Host
 
-(define-resource-class host (resource-tree)
+(define-resource-class host (resource-container)
   ((shell :initarg :shell
 	  :type shell))
   ((probe-os-using-uname :properties (:os))
    (probe-hostname :properties (:hostname))
-   (probe-uptime :properties (:uptime))))
+   (probe-boot-time :properties (:boot-time))))
+
+(defgeneric probe-os-using-uname (host os))
+(defgeneric probe-hostname (host os))
+(defgeneric probe-boot-time (host os))
 
 (defgeneric host-connect (host))
 (defgeneric host-disconnect (host))
 (defgeneric host-shell (host))
 (defgeneric (setf host-shell) (shell host))
 
+(defgeneric host-os (host))
 (defgeneric host-run (host command &rest format-args))
 
 (define-resource-class ssh-host (host))
@@ -187,5 +203,24 @@
 (defgeneric find-probe (resource property os))
 (defgeneric probe (resource property))
 (defgeneric get-probed (resource property))
+(defgeneric clear-probed% (resource properties))
+(defgeneric describe-probed% (resource output))
 
 (defvar *resource*)
+
+;;  Operators on property lists
+
+(defmacro remf* (place indicator)
+  `(iter (while (remf ,place ,indicator))
+         (counting t)))
+
+(iterate:defmacro-clause (for* vars in list)
+  (let ((l (gensym "LIST-")))
+    `(progn
+       (with ,l = ,list)
+       (while ,l)
+       ,@(iter (for var in vars)
+               (collect `(for ,var = (if ,l
+                                         (pop ,l)
+                                         (error "~S is not congruent to ~S"
+                                                ',list ',vars))))))))

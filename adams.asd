@@ -34,6 +34,7 @@
 	       "closer-mop"
 	       "ironclad"
 	       "iterate"
+               "parse-number"
 	       "re"
 	       "str"
 	       "trivial-utf-8")
@@ -47,11 +48,15 @@
    (:module "core" :depends-on ("package" "shell")
 	    :components
 	    ((:file "defs")
-	     (:file "host"     :depends-on ("defs" "os"))
+	     (:file "host"       :depends-on ("defs" "os" "resource-container"
+                                              "syntaxes"))
 	     (:file "os")
-	     (:file "probe"    :depends-on ("defs" "host"))
-	     (:file "resource" :depends-on ("defs" "probe"))
-	     (:file "spec"     :depends-on ("defs" "resource"))))
+	     (:file "probe"      :depends-on ("defs" "host" "properties"))
+	     (:file "properties" :depends-on ("defs"))
+	     (:file "resource"   :depends-on ("defs" "probe"))
+	     (:file "resource-container" :depends-on ("defs"))
+	     (:file "spec"       :depends-on ("defs" "resource"))
+             (:file "syntaxes")))
    (:module "unix" :depends-on ("package" "shell" "core")
 	    :components
 	    ((:file "commands")

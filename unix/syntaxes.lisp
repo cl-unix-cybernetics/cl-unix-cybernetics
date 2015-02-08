@@ -20,28 +20,6 @@
 
 (in-re-readtable)
 
-;;  Simple regexp-based parser generator with ITERATE support
-
-(defmacro define-syntax (name vars re &body body)
-  (let ((parse-name (sym 'parse- name))
-	(doc (when (stringp (first body)) (pop body)))
-	(values (or (first (last body))
-		    `(values ,@(iter (for spec in vars)
-				     (if (consp spec)
-					 (dolist (var (cdr spec))
-					   (collect var))
-					 (collect spec)))))))
-    `(progn
-       (defun ,parse-name (line)
-	 ,@(when doc (list doc))
-	 (re-bind ,re ,vars line
-	   ,@(or body `(,values))))
-       (iterate:defmacro-clause (,name iter-vars in lines)
-	 ,@(when doc (list doc))
-	 (let ((line (gensym ,(format nil "~A-LINE-" (symbol-name name)))))
-	   `(progn (for ,line in ,lines)
-		   (for (values ,@iter-vars) = (,',parse-name ,line))))))))
-
 ;;  Syntaxes
 
 (define-syntax group<5> (name passwd
@@ -84,3 +62,31 @@
 (define-syntax cksum<1> (algo sum file)
     #~|(\S+) \((.*)\) = (\S+)|
   "Syntax for cksum(1) output.")
+
+(define-syntax mount<8> (device mp type options)
+    #~|^\s*(\S+)\s+on\s+(\S+)\s+type\s+(\S+)\s+\(([^\)]+)\)|
+  "Syntax for mount(8) list of mounted filesystems."
+  (values device mp type (re-matches #~|[^\s,]+| options)))
+
+(define-syntax fstab<5> (device mp type options freq passno)
+    #~|^\s*([^\s#]+)\s+([^\s#]+)\s+([^\s#]+)\s+([^\s#]+)\s+([^\s#]+)\s+([^\s#]+)|
+  "Syntax for /etc/fstab, see fstab(5)."
+  (values device mp type
+          (re-matches #~|[^,]+| options)
+          (parse-integer freq)
+          (parse-integer passno)))
+
+(defun parse-ps-time (string)
+  (or (re-bind #~|^\s*([0-9]+):([0-9]*\.[0-9]*)$| (d h) string
+        (+ (* 3600 24 (the non-negative-fixnum (parse-integer d)))
+           (truncate (* 3600 (parse-number h)))))
+      (error "Invalid ps(1) time ?")))
+
+(define-syntax ps<1>-u (user
+                        (#'parse-number pid cpu mem vsz rss)
+                        tt state
+                        (#'chronicity:parse start)
+                        (#'parse-ps-time time)
+                        cmd)
+    #~|^\s*(\S+)\s+([0-9]+)\s+([0-9.]+)\s+([0-9.]+)\s+([0-9]+)\s+([0-9]+)\s+(\S+)\s+(\S+)\s+(\S+)\s+(\S+)\s+(.*)$|
+  "Syntax for ps -u, see ps(1).")

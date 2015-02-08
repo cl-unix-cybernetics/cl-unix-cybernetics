@@ -68,8 +68,14 @@
 		  probe))))
 	  (probes-of r)))
 
+(defun add-probed-properties (resource properties)
+  (setf (probed-properties resource)
+        (merge-properties properties (probed-properties resource))))
+
 (defmethod probe ((r resource) (property symbol))
-  (let* ((os (host-os *host*))
+  (let* ((os (unless (and (typep r 'host)
+                          (eq property :os))
+               (host-os *host*)))
 	 (probe (or (find-probe r property os)
 		    (error 'resource-probe-not-found
 			   :resource r
@@ -77,22 +83,35 @@
 			   :host *host*
 			   :os os)))
 	 (result (funcall (probe-generic-function probe) r os)))
-    (when (eq +undefined+ (getf result property +undefined+))
+    (when (eq +undefined+ (get-property property result))
       (error 'resource-probe-failed
 	     :probe probe
 	     :resource r
 	     :property property
 	     :host *host*
 	     :os os))
-    (setf (probed-properties r)
-	  (append result (probed-properties r)))
+    (add-probed-properties r result)
     result))
 
 (defmethod get-probed ((r resource) (property symbol))
-  (let ((value (getf (probed-properties r) property +undefined+)))
+  (let ((value (get-property property (probed-properties r))))
     (when (eq +undefined+ value)
-      (setq value (getf (probe r property) property +undefined+)))
+      (setq value (get-property property (probe r property))))
     value))
+
+(defmethod clear-probed% ((r resource) (properties null))
+  (setf (probed-properties r) nil))
+
+(defmethod clear-probed% ((r resource) (property symbol))
+  (remf* (probed-properties r) property))
+
+(defmethod clear-probed% ((r resource) (properties cons))
+  (dolist (p properties)
+    (when p
+      (clear-probed r p))))
+
+(defun clear-probed (&optional (resource *localhost*) properties)
+  (clear-probed% resource properties))
 
 ;;  Conditions
 

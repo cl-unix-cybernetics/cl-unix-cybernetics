@@ -24,6 +24,10 @@
   (setf (slot-value rc 'probes)
 	(compute-probes rc)))
 
+(defmethod slot-unbound (metaclass (rc resource-class) (slot-name (eql 'probes)))
+  (closer-mop:finalize-inheritance rc)
+  (slot-value rc 'probes))
+
 ;;  Resource
 
 (defmethod print-object ((r resource) stream)
@@ -56,21 +60,53 @@
 #+nil
 (probe-all-properties (resource 'file "/"))
 
-;;  Resource tree
+(defun pprint-plist (plist &optional (stream *standard-output*))
+  (pprint-logical-block (stream plist)
+    (iter (for* (k v) in plist)
+          (for first-line-p initially t then nil)
+          (unless first-line-p
+            (pprint-newline :mandatory stream))
+          (write k :stream stream)
+          (write-char #\Space stream)
+          (write v :stream stream))))
 
-(defmethod print-object ((r resource-tree) stream)
-  (print-unreadable-object (r stream :type t :identity (not *print-pretty*))
-    (format stream "~S ~D spec ~D probed ~D nested" (resource-id r)
-	    (/ (length (specified-properties r)) 2)
-	    (/ (length (probed-properties r)) 2)
-	    (hash-table-count (resources-of r)))))
+#+nil
+(pprint-plist '(:a "aaa" :b "foo" :xyz "bar"))
 
-;;  High level API
+(defmethod describe-probed% ((res resource) (out (eql :form)))
+  (let* ((props (probe-all-properties res))
+         (sorted-keys (sort (iter (for* (k v) in props)
+                                  (collect k))
+                            #'string<))
+         (sorted-props (iter (for key in sorted-keys)
+                             (collect key)
+                             (collect (get-property key props)))))
+    `(resource ',(class-name (class-of res))
+               ,(resource-id res)
+               ,@sorted-props)))
 
-(defmacro get-resource (type id &optional (resources '*resources*))
-  `(gethash (cons ,type ,id) ,resources))
+(defmethod describe-probed% ((res resource) (out null))
+  (with-output-to-string (str)
+    (describe-probed res str)))
 
-(defun add-resource (parent child)
-  (setf (get-resource (resource-type child) (resource-id child)
-		      (resources-of parent))
-	child))
+(defmethod describe-probed% ((res resource) (out (eql t)))
+  (describe-probed res *standard-output*))
+
+(defmethod describe-probed% ((res resource) (out stream))
+  (let ((form (describe-probed res :form)))
+    (fresh-line out)
+    (pprint-logical-block (out form :prefix "(" :suffix ")")
+      (write (first form) :stream out)
+      (write-char #\Space out)
+      (write (second form) :stream out)
+      (write-char #\Space out)
+      (write (third form) :stream out)
+      (pprint-indent :block 1 out)
+      (pprint-newline :mandatory out)
+      (pprint-plist (cdddr form) out))))
+
+(defun describe-probed (resource &optional (output t))
+  (describe-probed% resource output))
+
+#+nil
+(describe-probed (resource 'mount "/rd") t)

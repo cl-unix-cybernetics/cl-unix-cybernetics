@@ -22,7 +22,7 @@
 
 (defmethod specified-property ((res resource)
 			       (property symbol))
-  (let ((value (getf (specified-properties res) property +undefined+)))
+  (let ((value (get-property property (specified-properties res))))
     (when (eq +undefined+ value)
       (error "Property ~S not specified for ~S." property res))
     value))
@@ -30,7 +30,7 @@
 (defmethod (setf specified-property) (value
 				      (res resource)
 				      (property symbol))
-  (setf (getf (specified-properties res) property) value))
+  (setf (get-property property (specified-properties res)) value))
 
 ;;  Parse specifications
 
@@ -40,18 +40,27 @@
     (setf (specified-property res property) value)
     spec))
 
-(defmethod parse-next-specification ((res resource-tree) spec)
+(defmethod parse-next-specification ((res resource-container) spec)
   (cond ((typep (first spec) 'resource)
 	 (add-resource res (pop spec))
 	 spec)
 	(:otherwise (call-next-method))))
+
+(defmethod parse-specification ((res resource) (spec null))
+  res)
 
 (defmethod parse-specification ((res resource) (spec cons))
   (iter (while spec)
 	(for next-spec = (parse-next-specification res spec))
 	(when (eq spec next-spec)
 	  (error "Invalid specification : ~S" spec))
-	(setq spec next-spec)))
+	(setq spec next-spec))
+  res)
+
+
+#+nil
+(parse-specification *localhost*
+                     '(:hostname "arrakis.lowh.net"))
 
 (defmethod subclasses ((class class))
   (let (r)
@@ -78,3 +87,36 @@
 		      (subclasses (find-class 'resource)))
      (parse-specification *localhost*
 			  (list ,@specification))))
+
+#+nil
+(specify (user "billitch" :uid 19256 :group (group "billitch")))
+
+;;  Methods for matching specified and probed values
+
+(defgeneric match-specified-value (specified probed))
+
+(defmethod match-specified-value (specified probed)
+  (equalp specified probed))
+
+(defmethod match-specified-value ((specified resource) probed)
+  (equalp (resource-id specified) probed))
+
+;;  Methods to get current status of resource
+
+(defgeneric resource-diff (resource)
+  (:documentation "Two values are returned :
+First value lists properties out of specification in the following format :
+  (PROPERTY-NAME SPECIFIED-VALUE PROBED-VALUE).
+Second value lists properties in line with spec. Format is
+  (PROPERTY-NAME VALUE)"))
+
+(defmethod resource-diff ((res resource))
+  (iter (for* (property specified) in (specified-properties res))
+        (for probed = (get-probed res property))
+        (if (match-specified-value specified probed)
+            (collect `(,property ,specified) into ok)
+            (collect `(,property ,specified ,probed) into diff))
+        (finally (return (values diff ok)))))
+
+#+nil
+(resource-diff (resource 'directory "/" :owner "root" :uid 0))

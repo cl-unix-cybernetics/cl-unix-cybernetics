@@ -19,9 +19,10 @@
 (in-package :cl-user)
 
 (defpackage :adams
-  (:use :alexandria :cl :debug :iterate :re :str)
+  (:use :alexandria :cl :debug :iterate :parse-number :re :str)
   (:shadow #:directory)
   (:export
+   #:*adams*
    ;;  Shell
    #:*default-shell-command*
    #:*shell-signal-errors*
@@ -60,14 +61,21 @@
    #:resource-class
    ;;  Resource
    #:add-resource
+   #:describe-probed
    #:get-resource
    #:make-resource
    #:make-*resources*
    #:probed-properties
+   #:probe-all-properties
    #:resource
    #:resource-type
    #:specified-properties
    #:specified-property
+   ;;  Resource container
+   #:*parent-resource*
+   #:clear-resources
+   #:resource-container
+   #:with-parent-resource
    ;;  Specification
    #:specify
    #:parse-specification
@@ -86,11 +94,13 @@
    #:os-version
    #:os-windows
    ;;  Probing resources
+   #:clear-probed
    #:find-probe
    #:get-probed
    #:resource-probe-error
    #:resource-probe-not-found
    #:resource-probe-failed
+   #:resource-diff
    ;;  Host
    #:*host*
    #:host
@@ -105,24 +115,28 @@
    #:with-connected-host
    #:with-host
    ;;  Unix
+   #:define-syntax
+   #:directory
+   #:egrep
+   #:file
+   #:grep
+   #:group
+   #:group<5>
+   #:mount
+   #:parse-group<5>
+   #:parse-passwd<5>
+   #:parse-stat<1>
+   #:passwd<5>
+   #:process
+   #:stat
+   #:stat<1>
    #:+timestamp-offset+
    #:timestamp-to-universal-time
    #:universal-time-to-timestamp
-   #:grep
-   #:egrep
-   #:stat
-   #:group
-   #:define-syntax
-   #:parse-group<5>
-   #:group<5>
-   #:user
-   #:parse-passwd<5>
-   #:passwd<5>
-   #:file
-   #:parse-stat<1>
-   #:stat<1>))
+   #:user))
 
 (defpackage :adams-user
-  (:use :adams :cl :cl-debug))
+  (:use :adams :cl :cl-debug :re)
+  (:shadow #:directory))
 
 (setf (symbol-function 'adams::directory) #'cl:directory)

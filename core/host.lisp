@@ -43,11 +43,12 @@
     (shell-close (host-shell host))
     (slot-makunbound host 'shell)))
 
-(defmacro with-connected-host ((var hostname) &body body)
-  (let ((g!host (gensym "HOST-")))
-    `(let ((,g!host (make-instance 'ssh-host :id ,hostname)))
-       (unwind-protect (let ((,var ,g!host)) ,@body)
-	 (host-disconnect ,g!host)))))
+(defun host (host)
+  (etypecase host
+    (host host)
+    (string (if (string-equal (resource-id *localhost*) host)
+                *localhost*
+                (resource 'ssh-host host)))))
 
 (defmethod host-run ((host host) (command string) &rest format-args)
   (let ((shell (host-shell host)))
@@ -55,15 +56,31 @@
       (setq shell (host-connect host)))
     (apply #'shell-run shell command format-args)))
 
+(defmacro with-connected-host ((var hostname) &body body)
+  (let ((g!host (gensym "HOST-")))
+    `(let ((,g!host (make-instance 'ssh-host :id ,hostname)))
+       (unwind-protect (let ((,var ,g!host)) ,@body)
+         (host-disconnect ,g!host)))))
+
 (defmethod host-run ((hostname string) command &rest format-args)
   (with-connected-host (host hostname)
     (apply #'host-run host command format-args)))
 
+(defun run (command &rest format-args)
+  (if (boundp '*host*)
+      (apply #'host-run *host* command format-args)
+      (with-shell (shell)
+        (apply #'shell-run shell command format-args))))
+
 ;;  localhost
 
-(defvar *localhost* (load-time-value
-		     (make-instance 'host
-				    :id "localhost")))
+(assert (string= (machine-instance) (first (run "hostname"))))
+
+(defvar *localhost*
+  (load-time-value
+   (let ((id (machine-instance)))
+     (setf (get-resource 'host id)
+           (make-instance 'host :id id)))))
 
 (defmethod host-connect ((host (eql *localhost*)))
   (setf (host-shell host) (make-shell)))
@@ -73,17 +90,14 @@
 (defmethod host-connect ((host ssh-host))
   (setf (host-shell host) (make-shell "/usr/bin/ssh" (hostname host))))
 
-;;  High level API
+;;  With host
 
 (defvar *host* *localhost*)
 
-(defmacro with-host (hostname &body body)
-  `(with-connected-host (*host* ,hostname)
-     (let ((*manifest* (host-manifest *host*)))
+(defmacro with-host (host &body body)
+  `(let ((*host* (host ,host)))
+     (with-parent-resource *host*
        ,@body)))
-
-(defun run (command &rest format-args)
-  (apply #'host-run *host* command format-args))
 
 ;;  OS
 
@@ -94,7 +108,7 @@
 	    name release machine version))))
 
 (defmethod host-os ((host host))
-  (get-probed host 'os))
+  (get-probed host :os))
 
 ;;  Host probes
 
@@ -123,3 +137,8 @@
 
 (defmethod probe-hostname ((host host) (os os-unix))
   (cons :hostname (run "hostname")))
+
+(defmethod probe-boot-time ((host host) (os os-unix))
+  (iter (uptime<1> (time uptime users load1 load5 load15) in (run "uptime"))
+        (return (list :boot-time (chronicity:parse
+                                  (str uptime " seconds ago"))))))
