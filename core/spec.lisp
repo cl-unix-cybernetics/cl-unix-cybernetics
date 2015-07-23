@@ -30,7 +30,9 @@
 (defmethod (setf specified-property) (value
 				      (res resource)
 				      (property symbol))
-  (setf (get-property property (specified-properties res)) value))
+  (let ((p (specified-properties res)))
+    (setf (get-property property p) value)
+    (setf (specified-properties res) p)))
 
 ;;  Parse specifications
 
