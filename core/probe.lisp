@@ -75,12 +75,12 @@
 (defmethod probe ((r resource) (property symbol))
   (let* ((os (unless (and (typep r 'host)
                           (eq property :os))
-               (host-os *host*)))
+               (host-os (current-host))))
 	 (probe (or (find-probe r property os)
 		    (error 'resource-probe-not-found
 			   :resource r
 			   :property property
-			   :host *host*
+			   :host (current-host)
 			   :os os)))
 	 (result (funcall (probe-generic-function probe) r os)))
     (when (eq +undefined+ (get-property property result))
@@ -88,7 +88,7 @@
 	     :probe probe
 	     :resource r
 	     :property property
-	     :host *host*
+	     :host (current-host)
 	     :os os))
     (add-probed-properties r result)
     result))
@@ -110,7 +110,7 @@
     (when p
       (clear-probed r p))))
 
-(defun clear-probed (&optional (resource *localhost*) properties)
+(defun clear-probed (&optional (resource (localhost)) properties)
   (clear-probed% resource properties))
 
 ;;  Conditions

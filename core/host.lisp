@@ -18,15 +18,45 @@
 
 (in-package :adams)
 
+(defun run (command &rest format-args)
+  (if (and (boundp '*host*)
+           (symbol-value '*host*))
+      (apply #'host-run *host* command format-args)
+      (with-shell (shell)
+        (apply #'shell-run shell command format-args))))
+
+;;  localhost
+
+(assert (string= (machine-instance) (first (run "hostname"))))
+
+(defun local-hostname ()
+  (machine-instance))
+
+(defun localhost ()
+  (let ((id (local-hostname)))
+    (or #1=(get-resource 'host id)
+        (setf #1# (make-instance 'host :id id)))))
+
+(eval-when (:load-toplevel)
+  (setq *host* (localhost)))
+
+(defun host-connect (host)
+  (let ((id (resource-id host)))
+    (cond
+      ((string-equal (local-hostname) id)
+       (setf (host-shell host) (make-shell)))
+      (:otherwise
+       (setf (host-shell host) (make-shell "/usr/bin/ssh" id))))))
+
+(defun current-host ()
+  (or (when (boundp '*host*)
+        (symbol-value '*host*))
+      (localhost)))
+
 ;;  Host
 
 (defun hostname (host)
   (resource-id (the host host)))
-
-#+nil
-(defmethod print-object ((host host) stream)
-  (print-unreadable-object (host stream :type t :identity t)
-    (write-string (hostname host) stream)))
 
 ;;  Host shell
 
@@ -46,8 +76,10 @@
 (defun host (host)
   (etypecase host
     (host host)
-    (string (if (string-equal (resource-id *localhost*) host)
-                *localhost*
+    (string (if (or (string-equal (local-hostname) host)
+                    (string-equal "localhost" host)
+                    (string= "127.0.0.1" host))
+                (localhost)
                 (resource 'ssh-host host)))))
 
 (defmethod host-run ((host host) (command string) &rest format-args)
@@ -66,33 +98,7 @@
   (with-connected-host (host hostname)
     (apply #'host-run host command format-args)))
 
-(defun run (command &rest format-args)
-  (if (boundp '*host*)
-      (apply #'host-run *host* command format-args)
-      (with-shell (shell)
-        (apply #'shell-run shell command format-args))))
-
-;;  localhost
-
-(assert (string= (machine-instance) (first (run "hostname"))))
-
-(defvar *localhost*
-  (load-time-value
-   (let ((id (machine-instance)))
-     (setf (get-resource 'host id)
-           (make-instance 'host :id id)))))
-
-(defmethod host-connect ((host (eql *localhost*)))
-  (setf (host-shell host) (make-shell)))
-
-;;  SSH host
-
-(defmethod host-connect ((host ssh-host))
-  (setf (host-shell host) (make-shell "/usr/bin/ssh" (hostname host))))
-
 ;;  With host
-
-(defvar *host* *localhost*)
 
 (defmacro with-host (host &body body)
   `(let ((*host* (host ,host)))

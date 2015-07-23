@@ -172,7 +172,6 @@
 (defgeneric probe-hostname (host os))
 (defgeneric probe-boot-time (host os))
 
-(defgeneric host-connect (host))
 (defgeneric host-disconnect (host))
 (defgeneric host-shell (host))
 (defgeneric (setf host-shell) (shell host))
@@ -182,7 +181,6 @@
 
 (define-resource-class ssh-host (host))
 
-(defvar *localhost*)
 (defvar *host*)
 
 ;;  Probing resources
@@ -191,7 +189,7 @@
   ((resource :initarg :resource)
    (property :initarg :property)
    (host :initarg :host
-	 :initform *host*)
+	 :initform (current-host))
    (os :initarg :os)))
 
 (define-condition resource-probe-not-found (resource-probe-error)

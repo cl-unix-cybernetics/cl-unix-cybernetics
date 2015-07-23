@@ -102,14 +102,14 @@
    #:resource-probe-failed
    #:resource-diff
    ;;  Host
-   #:*host*
+   #:current-host
    #:host
    #:host-connect
    #:host-disconnect
    #:host-os
    #:host-shell
    #:host-run
-   #:*localhost*
+   #:localhost
    #:run
    #:ssh-host
    #:with-connected-host
