@@ -26,14 +26,19 @@
 (defun clear-resource-registry (rr)
   (clrhash rr))
 
-(defun get-resource (type id &optional (container (resource-registry
-                                                   *parent-resource*)))
-  (gethash (cons type id) container))
+(defun get-resource (type id &optional (container *parent-resource*))
+  (gethash (cons type id)
+           (typecase container
+             (resource-container (resource-registry container))
+             (t container))))
 
-(defsetf get-resource (type id &optional (container '(resource-registry
-                                                      *parent-resource*)))
+(defsetf get-resource (type id &optional (container '*parent-resource*))
     (value)
-  `(setf (gethash (cons ,type ,id) ,container) ,value))
+  `(setf (gethash (cons ,type ,id)
+                  (typecase ,container
+                    (resource-container (resource-registry ,container))
+                    (t ,container)))
+         ,value))
 
 (defun add-resource (parent child)
   (setf (get-resource (resource-type child)
