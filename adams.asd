@@ -61,7 +61,6 @@
 	    :components
 	    ((:file "commands")
 	     (:file "defs")
-	     #+openbsd
 	     (:file "openbsd" :depends-on ("commands" "defs"))
 	     (:file "probes"  :depends-on ("commands" "defs"
 					   "stat" "syntaxes"))
