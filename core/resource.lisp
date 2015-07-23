@@ -93,7 +93,8 @@
   (describe-probed res *standard-output*))
 
 (defmethod describe-probed% ((res resource) (out stream))
-  (let ((form (describe-probed res :form)))
+  (let ((form (describe-probed res :form))
+        (*print-case* :downcase))
     (fresh-line out)
     (pprint-logical-block (out form :prefix "(" :suffix ")")
       (write (first form) :stream out)
