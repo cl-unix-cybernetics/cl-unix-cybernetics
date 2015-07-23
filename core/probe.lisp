@@ -69,8 +69,8 @@
 	  (probes-of r)))
 
 (defun add-probed-properties (resource properties)
-  (setf (probed-properties resource)
-        (merge-properties properties (probed-properties resource))))
+  (setf #1=(probed-properties resource)
+        (merge-properties resource #1# properties)))
 
 (defmethod probe ((r resource) (property symbol))
   (let* ((os (unless (and (typep r 'host)

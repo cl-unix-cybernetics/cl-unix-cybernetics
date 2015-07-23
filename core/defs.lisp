@@ -25,6 +25,10 @@
 
 (defmethod subclasses (class))
 
+;;  Properties
+
+(defgeneric merge-property-values (resource property old new))
+
 ;;  Probe
 
 (defclass probe ()

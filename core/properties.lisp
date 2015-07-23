@@ -37,11 +37,39 @@
     (setq vars (first vars)))
   `(values ,@vars))
 
-(defun get-property (property properties)
-  (getf properties property +undefined+))
+(defmacro get-property (property properties)
+  `(getf ,properties ,property +undefined+))
 
-(defsetf get-property (property properties) (value)
-  `(setf (getf ,properties ,property) ,value))
+(defmethod merge-property-values (resource property old new)
+  (warn "Conflicting values for ~A property ~A
+ old: ~S
+ new: ~S
+Keeping old value by default."
+        resource property old new)
+  old)
 
-(defun merge-properties (&rest properties)
-  (apply #'append properties))
+#+nil ;; Is this really the right thing ?
+(defmethod merge-property-values ((resource t)
+                                  (property t)
+                                  (old list)
+                                  (new list))
+  (append old new))
+
+(defun merge-properties (resource &rest properties)
+  (let* ((result (cons nil nil))
+         (tail result))
+    (dolist (p properties)
+      (iter
+        (for* (key val) in p)
+        (let ((result-val (getf (cdr result) key +undefined+)))
+          (cond ((eq result-val +undefined+)
+                 (setf (cdr tail) (list key val)
+                       tail (cddr tail)))
+                ((not (equalp result-val val))
+                 (setf (getf (cdr result) key)
+                       (merge-property-values resource key result-val val)))))))
+    (cdr result)))
+
+(let ((p ()))
+  (setf (get-property :os p) "OpenBSD")
+  p)
