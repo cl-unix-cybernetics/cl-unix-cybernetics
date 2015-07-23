@@ -26,14 +26,32 @@
 	     (re-bind re (os-name node-name os-release os-version machine) uname-a)))
       (try-re #~"^(\S+) (\S+) (\S+) (.+) (\S+)$"))))
 
+(defun grep_ (pattern &rest files)
+  (join-str " " "grep" (sh-quote pattern) (mapcar #'sh-quote files)))
+
 (defun grep (pattern &rest files)
-  (run "grep ~A~{ ~A~}" (sh-quote pattern) (mapcar #'sh-quote files)))
+  (run (apply #'grep_ pattern files)))
+
+(defun egrep_ (pattern &rest files)
+  (join-str " " "egrep" (sh-quote pattern) (mapcar #'sh-quote files)))
 
 (defun egrep (pattern &rest files)
-  (run "egrep ~A~{ ~A~}" (sh-quote pattern) (mapcar #'sh-quote files)))
+  (run (apply #'egrep_ pattern files)))
+
+(defun stat_ (options &rest files)
+  (join-str " " "stat" options (mapcar #'sh-quote files)))
 
 (defun stat (options &rest files)
-  (run "stat ~A~{ ~A~}" options (mapcar #'sh-quote files)))
+  (run (apply #'stat_ options files)))
+
+(defun ls_ (options &rest files)
+  (join-str " " "ls" options (mapcar #'sh-quote files)))
 
 (defun ls (options &rest files)
-  (run "ls ~A~{ ~A~}" options (mapcar #'sh-quote files)))
+  (run (apply #'ls_ options files)))
+
+(defun sudo_ (options &rest command)
+  (join-str " " "sudo" options command))
+
+(defun sudo (options &rest command)
+  (run (apply #'sudo_ options command)))

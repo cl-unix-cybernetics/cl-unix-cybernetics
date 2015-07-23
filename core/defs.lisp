@@ -181,7 +181,7 @@
 (defgeneric (setf host-shell) (shell host))
 
 (defgeneric host-os (host))
-(defgeneric host-run (host command &rest format-args))
+(defgeneric host-run (host &rest command))
 
 (define-resource-class ssh-host (host))
 

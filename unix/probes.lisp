@@ -98,7 +98,7 @@
               (for vars = (if legacy
                               '(sum size name)
                               '(algo name sum)))
-              (for cmd = (str "cksum -a " algorithm " ~A"))
+              (for cmd = (str "cksum -a " algorithm " "))
               (for match-p = (if legacy
                                  `(string= id name)
                                  `(and (string= ,algorithm algo)
@@ -118,7 +118,7 @@
   (let* ((size (get-probed file :size))
          (content (when size
                     (if (< size *probe-file-content-size-limit*)
-                        (run "cat ~A" (sh-quote (resource-id file)))
+                        (run "cat " (sh-quote (resource-id file)))
                         :file-too-large))))
     (properties* content)))
 
@@ -128,7 +128,7 @@
   (let ((content (remove-if (lambda (f)
                               (or (string= "." f)
                                   (string= ".." f)))
-                            (run "ls -1a ~A" (resource-id dir)))))
+                            (run "ls -1a " (resource-id dir)))))
     (properties* content)))
 
 ;;  Mounts
@@ -137,7 +137,7 @@
   (let ((id (resource-id m)))
     (multiple-value-bind (dev mp fstype options)
         (iter (mount<8> (dev mp fstype options)
-                        in (run "mount | grep ~A"
+                        in (run "mount | grep "
                                 (sh-quote (str id " "))))
               (when (or (string= id dev)
                         (string= id mp))
@@ -151,8 +151,9 @@
   (let ((id (resource-id m)))
     (multiple-value-bind (dev mp fstype options freq passno)
         (iter (fstab<5> (dev mp fstype options freq passno)
-                        in (run "grep ~A /etc/fstab"
-                                (sh-quote (str id " "))))
+                        in (run "grep "
+                                (sh-quote (str id " "))
+                                " /etc/fstab"))
               (when (or (string= id dev)
                         (string= id mp))
                 (return (values dev mp fstype options freq passno))))
@@ -171,7 +172,7 @@
 (defmethod probe-ps-auxww ((process process) (os os-unix))
   (let ((id (resource-id process)))
     (multiple-value-bind #1=(user pid cpu mem vsz rss tt state start time cmd)
-        (iter (ps<1>-u #1# in (run "ps auxww | grep ~A" (sh-quote id)))
+        (iter (ps<1>-u #1# in (run "ps auxww | grep " (sh-quote id)))
               (print #.(cons 'list '#1#))
               (when (typecase id
                       (integer (= id pid))

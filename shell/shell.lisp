@@ -173,8 +173,8 @@ Error: ~S"
        (unwind-protect (let ((,shell ,g!shell)) ,@body)
 	 (shell-close ,g!shell)))))
 
-(defun shell-run (shell command &rest format-args)
-  (let ((cmd (apply 'format nil command format-args)))
+(defun shell-run (shell &rest command)
+  (let ((cmd (str command)))
     (multiple-value-bind (status out err) (shell-run-command cmd shell)
       (when *shell-signal-errors*
 	(assert (= 0 status) ()

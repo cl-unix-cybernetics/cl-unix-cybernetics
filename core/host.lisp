@@ -18,12 +18,13 @@
 
 (in-package :adams)
 
-(defun run (command &rest format-args)
+(defun run (&rest command)
+  "Run a command at the current host. COMMAND is assembled using STR."
   (if (and (boundp '*host*)
            (symbol-value '*host*))
-      (apply #'host-run *host* command format-args)
+      (apply #'host-run *host* command)
       (with-shell (shell)
-        (apply #'shell-run shell command format-args))))
+        (apply #'shell-run shell command))))
 
 ;;  localhost
 
@@ -79,11 +80,11 @@
                 (localhost)
                 (resource 'ssh-host host)))))
 
-(defmethod host-run ((host host) (command string) &rest format-args)
+(defmethod host-run ((host host) &rest command)
   (let ((shell (host-shell host)))
     (when (shell-closed-p shell)
       (setq shell (host-connect host)))
-    (apply #'shell-run shell command format-args)))
+    (apply #'shell-run shell command)))
 
 (defmacro with-connected-host ((var hostname) &body body)
   (let ((g!host (gensym "HOST-")))
@@ -91,9 +92,9 @@
        (unwind-protect (let ((,var ,g!host)) ,@body)
          (host-disconnect ,g!host)))))
 
-(defmethod host-run ((hostname string) command &rest format-args)
+(defmethod host-run ((hostname string) &rest command)
   (with-connected-host (host hostname)
-    (apply #'host-run host command format-args)))
+    (apply #'host-run host command)))
 
 ;;  With host
 
