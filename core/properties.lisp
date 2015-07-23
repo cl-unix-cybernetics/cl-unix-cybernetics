@@ -41,12 +41,14 @@
   `(getf ,properties ,property +undefined+))
 
 (defmethod merge-property-values (resource property old new)
-  (warn "Conflicting values for ~A property ~A
+  (unless (equalp old new)
+    (warn "Conflicting values for property ~A in
+~A
  old: ~S
  new: ~S
 Keeping old value by default."
-        resource property old new)
-  old)
+          property resource old new)
+    old))
 
 #+nil ;; Is this really the right thing ?
 (defmethod merge-property-values ((resource t)
