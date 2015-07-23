@@ -37,9 +37,6 @@
     (or #1=(get-resource 'host id)
         (setf #1# (make-instance 'host :id id)))))
 
-(eval-when (:load-toplevel)
-  (setq *host* (localhost)))
-
 (defun host-connect (host)
   (let ((id (resource-id host)))
     (cond
