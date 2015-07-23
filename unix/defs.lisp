@@ -53,10 +53,10 @@
 (eval-when (:compile-toplevel :load-toplevel :execute)
 
   (defvar *cksum-legacy-algorithms*
-    '(:cksum :sum :sysvsum))
+    '(:cksum))
 
   (defvar *cksum-algorithms*
-    `(:md4 :md5 :rmd160 :sha1 :sha224 :sha256 :sha384 :sha512
+    `(:md5 :rmd160 :sha1 :sha224 :sha256 :sha384 :sha512
            ,@*cksum-legacy-algorithms*)))
 
 (defvar *probe-file-content-size-limit* 8192)

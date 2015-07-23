@@ -22,33 +22,40 @@
 
 (define-resource-class openbsd-pkg (pkg)
   ()
-  ((probe-openbsd-pkg :properties (:name :version :flavors))))
+  ((probe-openbsd-pkg :properties (:versions))))
 
-(define-syntax pkg_info<1> (name version flavors)
-  #~|\s*((?:[^-\s]+)(?:-[^-0-9\s][^-\s]*)*)-([0-9][^-\s]*)(-[^\s]+)?|
+(define-syntax pkg_info<1> (name version)
+  #~|\s*((?:[^-\s]+)(?:-[^-0-9\s][^-\s]*)*)-([0-9][^-\s]*-[^\s]+)?|
   "Syntax for pkg_info(1) on OpenBSD"
-  (values name version (re-matches #~|[^-]+| flavors)))
+  (values name (list version)))
 
 (defgeneric probe-openbsd-pkg (resource os))
 
 (defmethod probe-openbsd-pkg ((pkg openbsd-pkg) (os os-openbsd))
   (let ((id (resource-id pkg)))
-    (multiple-value-bind #1=(name version flavors)
-      (iter (pkg_info<1> #1# in
+    (multiple-value-bind #1=(versions)
+      (iter (pkg_info<1> (name versions) in
                          (run "pkg_info | egrep ~A" (sh-quote (str "^" id "-"))))
             (when (string= id name)
               (return (values* #1#))))
       (properties* #1#))))
 
+(defmethod merge-property-values ((pkg openbsd-pkg)
+                                  (property (eql :versions))
+                                  (old list)
+                                  (new list))
+  (sort (remove-duplicates (append old new))
+        #'string<))
+
 (defmethod probe-installed-packages% ((host host) (os os-openbsd))
   (with-host host
-    (iter (pkg_info<1> #1=(name version flavors)
+    (iter (pkg_info<1> #1=(name versions flavors)
                        in (run "pkg_info"))
           (for pkg = (resource 'openbsd-pkg name))
           (add-probed-properties pkg (properties* #1#))
-          (collect pkg))))
+          (adjoining pkg))))
 
-(defun probe-installed-packages (&optional (host *host*))
+(defun probe-installed-packages (&optional (host (current-host)))
   (probe-installed-packages% host (host-os host)))
 
 #+nil
@@ -58,7 +65,10 @@
 (describe-probed (resource 'openbsd-pkg "emacs"))
 
 #+nil
-(probe-installed-packages *localhost* (host-os *localhost*))
+(probe-installed-packages)
+
+#+nil
+(map nil #'describe-probed (probe-installed-packages))
 
 #+nil
 (run "pkg_info -q | grep emacs-")
