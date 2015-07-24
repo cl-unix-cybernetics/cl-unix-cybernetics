@@ -95,13 +95,10 @@
 
 ;;  Methods for matching specified and probed values
 
-(defgeneric match-specified-value (specified probed))
+(defgeneric match-specified-value (resource property specified probed))
 
-(defmethod match-specified-value (specified probed)
-  (equalp specified probed))
-
-(defmethod match-specified-value ((specified resource) probed)
-  (equalp (resource-id specified) probed))
+(defmethod match-specified-value (resource property specified probed)
+  (equalp specified (describe-probed-property-value resource property probed)))
 
 ;;  Methods to get current status of resource
 
@@ -115,7 +112,7 @@ Second value lists properties in line with spec. Format is
 (defmethod resource-diff ((res resource))
   (iter (for* (property specified) in (specified-properties res))
         (for probed = (get-probed res property))
-        (if (match-specified-value specified probed)
+        (if (match-specified-value res property specified probed)
             (collect `(,property ,specified) into ok)
             (collect `(,property ,specified ,probed) into diff))
         (finally (return (values diff ok)))))

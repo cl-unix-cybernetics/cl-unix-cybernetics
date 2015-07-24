@@ -27,6 +27,8 @@
 
 ;;  Properties
 
+(defgeneric compare-property-values (resource property value1 value2))
+
 (defgeneric merge-property-values (resource property old new))
 
 ;;  Probe
@@ -207,6 +209,7 @@
 (defgeneric get-probed (resource property))
 (defgeneric clear-probed% (resource properties))
 (defgeneric describe-probed% (resource output))
+(defgeneric describe-probed-property-value (resource property value))
 
 (defvar *resource*)
 

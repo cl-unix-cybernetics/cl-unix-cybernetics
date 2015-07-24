@@ -105,12 +105,6 @@
 
 ;;  OS
 
-(defmethod print-object ((os os) stream)
-  (print-unreadable-object (os stream :type t :identity (not *print-pretty*))
-    (with-slots (machine name release version) os
-    (format stream "~A ~A ~A ~A"
-	    name release machine version))))
-
 (defmethod host-os ((host host))
   (get-probed host :os))
 

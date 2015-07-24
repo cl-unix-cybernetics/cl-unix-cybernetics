@@ -73,6 +73,11 @@
 #+nil
 (pprint-plist '(:a "aaa" :b "foo" :xyz "bar"))
 
+(defmethod describe-probed-property-value ((resource t)
+                                           (property t)
+                                           value)
+  value)
+
 (defmethod describe-probed% ((res resource) (out (eql :form)))
   (let* ((props (probe-all-properties res))
          (sorted-keys (sort (iter (for* (k v) in props)
@@ -80,7 +85,8 @@
                             #'string<))
          (sorted-props (iter (for key in sorted-keys)
                              (collect key)
-                             (collect (get-property key props)))))
+                             (collect (describe-probed-property-value
+                                       res key (get-property key props))))))
     `(resource ',(class-name (class-of res))
                ,(resource-id res)
                ,@sorted-props)))

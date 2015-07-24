@@ -18,6 +18,19 @@
 
 (in-package :adams)
 
+(defmethod print-object ((os os) stream)
+  (print-unreadable-object (os stream :type t :identity (not *print-pretty*))
+    (with-slots (machine name release version) os
+    (format stream "~A ~A ~A ~A"
+	    name release version machine))))
+
+(defmethod describe-probed-property-value ((resource host)
+                                           (property (eql :os))
+                                           (os os))
+  (with-slots (machine name release version) os
+    (format nil "~A ~A ~A ~A"
+	    name release version machine)))
+
 ;;  UNIX
 
 (defclass os-unix (os) ())
