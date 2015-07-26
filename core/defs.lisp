@@ -213,15 +213,6 @@
 (define-condition resource-probe-failed (resource-probe-error)
   ((probe :initarg :probe)))
 
-(defgeneric find-probe (resource property os))
-(defgeneric probe (resource property))
-(defgeneric get-probed (resource property))
-(defgeneric clear-probed% (resource properties))
-(defgeneric describe-probed% (resource output))
-(defgeneric describe-probed-property-value (resource property value))
-
-(defvar *resource*)
-
 ;;  Operators on property lists
 
 (defmacro remf* (place indicator)
