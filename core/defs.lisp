@@ -116,6 +116,8 @@
 
 (setq *the-resource-class* (find-class 'resource))
 
+(defvar *resource*)
+
 ;;  Resource container
 
 (defun make-resource-registry ()
@@ -190,6 +192,13 @@
 (defvar *host*)
 
 ;;  Probing resources
+
+(defgeneric find-probe (resource property os))
+(defgeneric probe (resource property))
+(defgeneric get-probed (resource property))
+(defgeneric clear-probed% (resource properties))
+(defgeneric describe-probed% (resource output))
+(defgeneric describe-probed-property-value (resource property value))
 
 (define-condition resource-probe-error (error)
   ((resource :initarg :resource)
