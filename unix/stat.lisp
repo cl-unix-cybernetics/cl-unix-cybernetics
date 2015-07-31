@@ -56,6 +56,9 @@
 (defmethod mode-permissions ((mode mode))
   (logand #o007777 (mode-fixnum mode)))
 
+(defmethod mode-permissions (mode)
+  (mode-permissions (mode mode)))
+
 (defmethod mode-string ((mode mode))
   (let* ((num (mode-fixnum mode))
          (type (mode-type num)))
@@ -123,10 +126,19 @@
                      (mode-octal mode)))
          stream))
 
-(mode "dr-xr-x---")
-
 (defun parse-unix-timestamp (x)
   (let ((n (typecase x
 	     (string (parse-integer x))
 	     (integer x))))
     (local-time:unix-to-timestamp n)))
+
+(defmethod describe-probed-property-value (resource property (mode mode))
+  (mode-octal mode))
+
+(defmethod compare-property-values ((resource vnode) (property (eql :mode))
+                                    value1 value2)
+  (= (mode-fixnum value1) (mode-fixnum value2)))
+
+(defmethod match-specified-value ((resource vnode) (property (eql :mode))
+                                  specified probed)
+  (= (mode-fixnum specified) (mode-fixnum probed)))
