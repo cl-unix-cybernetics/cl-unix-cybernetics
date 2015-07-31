@@ -41,7 +41,8 @@
 	(dolist (probe-definition direct-probes)
 	  (collect (apply #'make-instance
 			  (probe-class rc)
-			  :name probe-definition)))))
+			  :name
+                          probe-definition)))))
 
 (defmethod probe-properties ((rc resource-class))
   (let ((properties nil))
