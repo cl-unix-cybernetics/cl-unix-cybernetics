@@ -73,7 +73,7 @@ Error: ~S"
 ;;  Shell
 
 (defun sh-quote (string)
-  (if (cl-ppcre:scan "^[-+/=.,:_0-9A-Za-z]*$" string)
+  (if (cl-ppcre:scan "^[-+/=.,:^_0-9A-Za-z]*$" string)
       string
       (str "\"" (cl-ppcre:regex-replace-all "([$`\\\\\"])" string "\\\\\\1") "\"")))
 
