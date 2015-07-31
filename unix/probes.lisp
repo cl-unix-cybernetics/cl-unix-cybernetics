@@ -41,8 +41,10 @@
                          (string (egrep (str #\^ id #\:) "/etc/passwd"))))
             (when (etypecase id
                     (string (string= id login))
-                    (integer (= id uid))))
-	    (return (values* #1#)))
+                    (integer (= id uid)))
+              (setq home (resource 'directory home)
+                    shell (resource 'file shell))
+              (return (values* #1#))))
       (properties* #1#))))
 
 (defmethod probe-user-groups-in-/etc/group ((user user) (os os-unix))
@@ -55,10 +57,10 @@
          (groups (iter (group<5> (name passwd gid members)
                                  in (grep user-login "/etc/group"))
                        (cond ((= user-gid gid)
-                              (setq user-group name))
+                              (setq user-group (resource 'group name)))
                              ((find user-login members :test #'string=)
-                              (collect name)))))
-         (groups (sort groups #'string<))
+                              (collect (resource 'group name))))))
+         (groups (sort groups #'string< :key #'resource-id))
          (groups (if user-group
                      (cons user-group groups)
                      groups)))
@@ -72,6 +74,9 @@
       (iter (ls<1>-lT #.(cons 'name '#1#)
                       in (ls "-ldT" id))
             (when (string= id name)
+              (setq mode (mode (mode-permissions mode))
+                    owner (resource 'user owner)
+                    group (resource 'group group))
               (return (values* #1#))))
       (properties* #1#))))
 
@@ -82,7 +87,7 @@
       (iter (stat<1>-r #.(cons 'name '#1#)
                        in (stat "-r" id))
             (when (string= id name)
-              (setq mode (mode-string mode))
+              (setq mode (mode (mode-permissions mode)))
               (return (values* #1#))))
       (properties* #1#))))
 

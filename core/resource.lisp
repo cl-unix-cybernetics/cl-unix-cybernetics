@@ -90,6 +90,18 @@
                                            value)
   value)
 
+(defmethod describe-probed-property-value ((resource t)
+                                           (property t)
+                                           (value resource))
+  (resource-id value))
+
+(defmethod describe-probed-property-value ((resource t)
+                                           (property t)
+                                           (value list))
+  (if (every #'resource-p value)
+      (mapcar #'resource-id value)
+      value))
+
 (defmethod describe-probed% ((res resource) (out (eql :form)))
   (let* ((props (probe-all-properties res))
          (sorted-keys (sort (iter (for* (k v) in props)

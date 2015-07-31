@@ -50,6 +50,11 @@
 (defmethod compare-property-values (resource property value1 value2)
   (equalp value1 value2))
 
+(defmethod compare-property-values (resource property
+                                    (value1 local-time:timestamp)
+                                    (value2 local-time:timestamp))
+  (local-time:timestamp= value1 value2))
+
 (defmethod merge-property-values (resource property old new)
   (unless (compare-property-values resource property old new)
     (warn "Conflicting values for property ~A in
