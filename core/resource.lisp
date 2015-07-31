@@ -141,3 +141,39 @@
 
 #+nil
 (describe-probed (resource 'mount "/rd") t)
+
+
+;;  Sync
+
+(defmethod sync ((res resource))
+  (when-let ((diff (resource-diff res)))
+    (let* ((plist (resource-diff-to-plist diff))
+           (host (current-host))
+           (os (host-os host))
+           (ops (list-operations res plist os))
+           (sorted-ops (sort-operations ops)))
+      (iter (for op in sorted-ops)
+            (for op-keys = (operation-properties op))
+            (for op-plist = (get-properties op-keys plist))
+            (apply (operation-generic-function op)
+                   res os op-plist)
+            (clear-probed res op-keys)
+            (for failed = (iter (for property in op-keys)
+                                (for specified = (get-property property
+                                                               op-plist))
+                                (when (not (eq specified +undefined+))
+                                  (for probed = (get-probed res property))
+                                  (for desc = (describe-probed-property-value
+                                               res property probed))
+                                  (unless (match-specified-value
+                                           res property specified desc)
+                                    (collect property)
+                                    (collect specified)
+                                    (collect desc)))))
+            (when failed
+              (error 'resource-operation-failed
+                     :diff failed
+                     :operation op
+                     :os os
+                     :host host
+                     :resource res))))))
