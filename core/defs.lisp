@@ -49,11 +49,15 @@
 (defclass operation ()
   ((name :initarg :name
 	 :initform (error "Operation without a name.")
-	 :reader op-name
+	 :reader operation-name
 	 :type symbol)
    (properties :initarg :properties
 	       :initform (error "Operation without properties.")
-	       :reader op-properties)))
+	       :reader operation-properties)
+   (after :initarg :after
+          :reader operations-before)))
+
+(defgeneric operation-generic-function (op))
 
 ;;  Resource metaclass
 
@@ -64,14 +68,14 @@
 		  :initform ()
 		  :reader direct-probes
 		  :type list)
-   (direct-ops :initarg :direct-ops
-	       :initform ()
-	       :reader direct-ops
-	       :type list)
+   (direct-operations :initarg :direct-operations
+                      :initform ()
+                      :reader direct-operations
+                      :type list)
    (probes :reader probes-of
 	   :type list)
-   (ops :reader ops-of
-	:type list))
+   (operations :reader operations-of
+               :type list))
   (:default-initargs :direct-superclasses (list *the-resource-class*)))
 
 (defmethod closer-mop:validate-superclass ((c resource-class)
@@ -87,13 +91,16 @@
   `(defclass ,name ,(or direct-superclasses
 			'(resource))
      ,direct-slots
-     (:direct-ops ,@direct-ops)
+     (:direct-operations ,@direct-ops)
      (:direct-probes ,@direct-probes)
      (:metaclass resource-class)
      ,@options))
 
 (defgeneric probe-class (resource-class))
 (defgeneric compute-probes (resource-class))
+
+(defgeneric operation-class (resource-class))
+(defgeneric compute-operations (resource-class))
 
 ;;  Resource base class
 
@@ -212,6 +219,24 @@
 
 (define-condition resource-probe-failed (resource-probe-error)
   ((probe :initarg :probe)))
+
+;;  Operating on resources
+
+(defgeneric find-operation (resource property os))
+(defgeneric operate (resource plist))
+
+(define-condition resource-operation-error (error)
+  ((resource :initarg :resource)
+   (host :initarg :host
+	 :initform (current-host))
+   (os :initarg :os)))
+
+(define-condition resource-operation-not-found (resource-operation-error)
+  ((property :initarg :property)))
+
+(define-condition resource-operation-failed (resource-operation-error)
+  ((operation :initarg :operation)
+   (diff :initarg :diff)))
 
 ;;  Operators on property lists
 

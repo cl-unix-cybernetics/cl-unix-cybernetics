@@ -20,7 +20,7 @@
 
 (defpackage :adams
   (:use :alexandria :cl :debug :iterate :parse-number :re :str)
-  (:shadow #:directory)
+  (:shadow #:directory #:get-properties)
   (:export
    #:*adams*
    ;;  Shell

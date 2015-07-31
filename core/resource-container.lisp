@@ -46,6 +46,10 @@
 		      parent)
 	child))
 
+(iterate:defmacro-clause (for-resource var in container)
+  (let ((x (gensym)))
+    `(for (,x ,var) in-hashtable (resource-registry ,container))))
+
 ;;  Resource container
 
 (defmethod print-object ((rc resource-container) stream)

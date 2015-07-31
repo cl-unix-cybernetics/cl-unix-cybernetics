@@ -112,10 +112,25 @@ Second value lists properties in line with spec. Format is
 (defmethod resource-diff ((res resource))
   (iter (for* (property specified) in (specified-properties res))
         (for probed = (get-probed res property))
-        (if (match-specified-value res property specified probed)
+        (for desc = (describe-probed-property-value res property probed))
+        (if (match-specified-value res property specified desc)
             (collect `(,property ,specified) into ok)
-            (collect `(,property ,specified ,probed) into diff))
-        (finally (return (values diff ok)))))
+            (collect `(,property ,specified ,desc) into diff))
+        (finally (return diff))))
 
 #+nil
 (resource-diff (resource 'directory "/" :owner "root" :uid 0))
+
+(defmethod resource-diff ((res resource-container))
+  (append (call-next-method res)
+          (iter (for-resource r in res)
+                (for d = (resource-diff r))
+                (when d
+                  (collect (cons r d))))))
+
+(defun resource-diff-to-plist (diff)
+  (iter (for item in diff)
+        (for key = (first item))
+        (when (keywordp key)
+          (collect key)
+          (collect (second item)))))

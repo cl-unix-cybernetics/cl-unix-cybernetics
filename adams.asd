@@ -52,6 +52,7 @@
                                               "syntaxes"))
 	     (:file "os")
 	     (:file "probe"      :depends-on ("defs" "host" "properties"))
+	     (:file "operation"  :depends-on ("defs" "host" "properties"))
 	     (:file "properties" :depends-on ("defs"))
 	     (:file "resource"   :depends-on ("defs" "probe"))
 	     (:file "resource-container" :depends-on ("defs"))

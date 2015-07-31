@@ -22,13 +22,18 @@
 
 (defmethod closer-mop:finalize-inheritance :after ((rc resource-class))
   (setf (slot-value rc 'probes)
-	(compute-probes rc)))
+	(compute-probes rc)
+        (slot-value rc 'operations)
+        (compute-operations rc)))
 
 (defmethod slot-unbound (metaclass (rc resource-class) (slot-name (eql 'probes)))
   (closer-mop:finalize-inheritance rc)
   (slot-value rc 'probes))
 
 ;;  Resource
+
+(defun resource-p (x)
+  (typep x 'resource))
 
 (defmethod print-object ((r resource) stream)
   (print-unreadable-object (r stream :type t :identity (not *print-pretty*))
@@ -59,6 +64,13 @@
 
 #+nil
 (probe-all-properties (resource 'file "/"))
+
+(defmethod resource-operations-properties ((res resource))
+  (let ((properties))
+    (dolist (operation (operations-of res))
+      (dolist (property (operation-properties operation))
+        (pushnew property properties)))
+    (sort properties #'string<)))
 
 (defun pprint-plist (plist &optional (stream *standard-output*))
   (pprint-logical-block (stream plist)

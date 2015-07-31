@@ -40,6 +40,13 @@
 (defmacro get-property (property properties)
   `(getf ,properties ,property +undefined+))
 
+(defun get-properties (keys properties)
+  (iter (for k in keys)
+        (for v = (get-property k properties))
+        (unless (eq v +undefined+)
+          (collect k)
+          (collect v))))
+
 (defmethod compare-property-values (resource property value1 value2)
   (equalp value1 value2))
 
