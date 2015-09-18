@@ -50,8 +50,8 @@
 (defun ls (options &rest files)
   (run (apply #'ls_ options files)))
 
-(defun sudo_ (options &rest command)
-  (join-str " " "sudo" options command))
+(defun sudo_ (&rest command)
+  (join-str " " "sudo" command))
 
-(defun sudo (options &rest command)
-  (run (apply #'sudo_ options command)))
+(defun sudo (&rest command)
+  (run (apply #'sudo_ command)))
