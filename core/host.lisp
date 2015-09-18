@@ -38,13 +38,21 @@
     (or #1=(get-resource 'host id)
         (setf #1# (make-instance 'host :id id)))))
 
+(defun host-user (host)
+  (specified-property host :user))
+
 (defun host-connect (host)
   (let ((id (resource-id host)))
     (cond
       ((string-equal (local-hostname) id)
-       (setf (host-shell host) (make-shell)))
+       (setf (host-shell host) (make-shell "/bin/sh")))
       (:otherwise
-       (setf (host-shell host) (make-shell "/usr/bin/ssh" id))))))
+       (let ((user (host-user host)))
+         (setf (host-shell host)
+               (apply #'make-shell
+                      `("/usr/bin/ssh"
+                        ,@(when user `("-l" ,user))
+                        ,id "/bin/sh"))))))))
 
 (defun current-host ()
   (or (when (boundp '*host*)
