@@ -131,7 +131,7 @@ Error: ~S"
 	 (len (length delim))
 	 (lines-head (cons nil nil))
 	 (lines-tail lines-head))
-    (shell-in (format nil " ; echo \"\\n~A $?\"~%" delim) shell)
+    (shell-in (format nil " ; echo \"~%~A $?\"~%" delim) shell)
     (let* ((status (do ((line #1=(shell-out/line shell) #1#)
 			(prev nil line))
 		       ((or (null line)
