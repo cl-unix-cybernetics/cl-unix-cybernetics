@@ -108,9 +108,11 @@
                                   (collect k))
                             #'string<))
          (sorted-props (iter (for key in sorted-keys)
-                             (collect key)
-                             (collect (describe-probed-property-value
-                                       res key (get-property key props))))))
+                             (for value = (describe-probed-property-value
+                                           res key (get-property key props)))
+                             (when value
+                               (collect key)
+                               (collect value)))))
     `(resource ',(class-name (class-of res))
                ,(resource-id res)
                ,@sorted-props)))
