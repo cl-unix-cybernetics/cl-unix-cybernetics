@@ -78,7 +78,7 @@
                     (string-equal "localhost" host)
                     (string= "127.0.0.1" host))
                 (localhost)
-                (resource 'ssh-host host)))))
+                (resource 'host host)))))
 
 (defmethod host-run ((host host) &rest command)
   (let ((shell (host-shell host)))
@@ -88,7 +88,7 @@
 
 (defmacro with-connected-host ((var hostname) &body body)
   (let ((g!host (gensym "HOST-")))
-    `(let ((,g!host (make-instance 'ssh-host :id ,hostname)))
+    `(let ((,g!host (make-instance 'host :id ,hostname)))
        (unwind-protect (let ((,var ,g!host)) ,@body)
          (host-disconnect ,g!host)))))
 

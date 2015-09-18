@@ -194,8 +194,6 @@
 (defgeneric host-os (host))
 (defgeneric host-run (host &rest command))
 
-(define-resource-class ssh-host (host))
-
 (defvar *host*)
 
 ;;  Probing resources
