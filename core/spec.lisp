@@ -23,9 +23,9 @@
 (defmethod specified-property ((res resource)
 			       (property symbol))
   (let ((value (get-property property (specified-properties res))))
-    (when (eq +undefined+ value)
-      (error "Property ~S not specified for ~S." property res))
-    value))
+    (if (eq +undefined+ value)
+        (values nil value)
+        value)))
 
 (defmethod (setf specified-property) (value
 				      (res resource)
