@@ -22,14 +22,17 @@
   (print-unreadable-object (os stream :type t :identity (not *print-pretty*))
     (with-slots (machine name release version) os
     (format stream "~A ~A ~A ~A"
-	    name release version machine))))
+	    machine name release version))))
 
 (defmethod describe-probed-property-value ((resource host)
                                            (property (eql :os))
                                            (os os))
   (with-slots (machine name release version) os
     (format nil "~A ~A ~A ~A"
-	    name release version machine)))
+	    machine name release version)))
+
+(defmethod match-specified-value ((host host) (property (eql :os)) specified probed)
+  (re-match `(:sequence ,specified) probed))
 
 ;;  UNIX
 

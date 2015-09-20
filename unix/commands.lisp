@@ -21,10 +21,9 @@
 (in-re-readtable)
 
 (defun uname ()
-  (let ((uname-a (first (run "uname -a"))))
-    (flet ((try-re (re)
-	     (re-bind re (os-name node-name os-release os-version machine) uname-a)))
-      (try-re #~"^(\S+) (\S+) (\S+) (.+) (\S+)$"))))
+  (re-bind #~"^(\S+) (\S+) (\S+) (.+) (\S+)$"
+      (os-name node-name os-release os-version machine)
+    (first (run "uname -a"))))
 
 (defun grep_ (pattern &rest files)
   (join-str " " "grep" (sh-quote pattern) (mapcar #'sh-quote files)))

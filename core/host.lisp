@@ -118,6 +118,10 @@
 
 ;;  Host probes
 
+(defmethod describe-probed% ((host host) (out (eql :form)))
+  (with-host host
+    (call-next-method)))
+
 (defmethod probe-os-using-uname ((host host) (os t))
   (multiple-value-bind (name hostname release version machine) (uname)
     (declare (ignore hostname))
@@ -148,3 +152,6 @@
   (iter (uptime<1> (time uptime users load1 load5 load15) in (run "uptime"))
         (return (list :boot-time (chronicity:parse
                                   (str uptime " seconds ago"))))))
+
+(defmethod probe-host-user ((host host) (os os-unix))
+  (list :user (first (run "whoami"))))

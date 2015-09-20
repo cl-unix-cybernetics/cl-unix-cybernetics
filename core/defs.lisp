@@ -181,7 +181,8 @@
 	  :type shell))
   ((probe-os-using-uname :properties (:os))
    (probe-hostname :properties (:hostname))
-   (probe-boot-time :properties (:boot-time))))
+   (probe-boot-time :properties (:boot-time))
+   (probe-host-user :properties (:user))))
 
 (defgeneric probe-os-using-uname (host os))
 (defgeneric probe-hostname (host os))

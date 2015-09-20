@@ -128,6 +128,10 @@ Second value lists properties in line with spec. Format is
                 (when d
                   (collect (cons r d))))))
 
+(defmethod resource-diff ((host host))
+  (with-host host
+    (call-next-method)))
+
 (defun resource-diff-to-plist (diff)
   (iter (for item in diff)
         (for key = (first item))
