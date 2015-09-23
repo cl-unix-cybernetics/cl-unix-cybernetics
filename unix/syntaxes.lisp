@@ -90,3 +90,45 @@
                         cmd)
     #~|^\s*(\S+)\s+([0-9]+)\s+([0-9.]+)\s+([0-9.]+)\s+([0-9]+)\s+([0-9]+)\s+(\S+)\s+(\S+)\s+(\S+)\s+(\S+)\s+(.*)$|
   "Syntax for ps -u, see ps(1).")
+
+(define-constant +sh-whitespace+
+    (str #\Space #\Tab #\Newline)
+  :test 'equal)
+
+(define-constant +sh-meta+
+    "<>|;()&"
+  :test 'equal)
+
+(define-constant +sh-word-delimiters+
+    (str +sh-whitespace+ +sh-meta+)
+  :test 'equal)
+
+(defun sh-word-delimiter-p (char)
+  (find char +sh-word-delimiters+ :test #'eq))
+
+(defun parse-sh-var-value (string)
+  (with-output-to-string (out)
+    (iter (with quote = nil)
+          (with backslash = nil)
+          (for i below (length string))
+          (for c = (char string i))
+          (cond
+            (backslash
+             (setq backslash nil)
+             (write-char c out))
+            ((and (eq #\\ c) (not (eq #\' quote)))
+             (setq backslash t))
+            ((eq quote c)
+             (setq quote nil))
+            ((and (null quote) (or (eq #\" c) (eq #\' c)))
+             (setq quote c))
+            ((and (null quote) (sh-word-delimiter-p c))
+             (finish))
+            (:otherwise
+             (write-char c out)))
+          (finally
+           (when (or quote backslash)
+             (error "Unmatched quote"))))))
+
+(define-syntax sh-var (var (#'parse-sh-var-value value))
+    #~|^\s*(\w*)=(.*)|)

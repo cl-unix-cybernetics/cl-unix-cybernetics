@@ -21,19 +21,22 @@
 ;;  Group
 
 (defmethod probe-group-in-/etc/group ((group group) (os os-unix))
-  (let ((id (resource-id group)))
+  (let ((id (resource-id group))
+        (ensure :absent))
     (multiple-value-bind #1=(name passwd gid members)
       (iter (group<5> #1# in (grep (str id) "/etc/group"))
             (when (etypecase id
                     (integer (= id gid))
                     (string (string= id name)))
+              (setq ensure nil)
               (return (values* #1#))))
-      (properties* #1#))))
+      (properties* (ensure . #1#)))))
 
 ;;  User
 
 (defmethod probe-user-in-/etc/passwd ((user user) (os os-unix))
-  (let ((id (resource-id user)))
+  (let ((id (resource-id user))
+        (ensure :absent))
     (multiple-value-bind #1=(login pass uid gid realname home shell)
       (iter (passwd<5> #1# in
                        (etypecase id
@@ -42,28 +45,31 @@
             (when (etypecase id
                     (string (string= id login))
                     (integer (= id uid)))
-              (setq home (resource 'directory home)
+              (setq ensure nil
+                    home (resource 'directory home)
                     shell (resource 'file shell))
               (return (values* #1#))))
-      (properties* #1#))))
+      (properties* (ensure . #1#)))))
 
 (defmethod probe-user-groups-in-/etc/group ((user user) (os os-unix))
-  (let* ((id (resource-id user))
-	 (user-login (if (stringp id)
-			 id
-			 (get-probed user :login)))
-	 (user-gid (get-probed user :gid))
-         (user-group nil)
-         (groups (iter (group<5> (name passwd gid members)
-                                 in (grep user-login "/etc/group"))
-                       (cond ((= user-gid gid)
-                              (setq user-group (resource 'group name)))
-                             ((find user-login members :test #'string=)
-                              (collect (resource 'group name))))))
-         (groups (sort groups #'string< :key #'resource-id))
-         (groups (if user-group
-                     (cons user-group groups)
-                     groups)))
+  (let ((id (resource-id user))
+        groups)
+    (unless (eq :absent (get-probed user :ensure))
+      (let* ((user-login (if (stringp id)
+                             id
+                             (get-probed user :login)))
+             (user-gid (get-probed user :gid))
+             (user-group nil))
+        (setq groups (iter (group<5> (name passwd gid members)
+                                     in (grep user-login "/etc/group"))
+                           (cond ((= user-gid gid)
+                                  (setq user-group (resource 'group name)))
+                                 ((find user-login members :test #'string=)
+                                  (collect (resource 'group name)))))
+              groups (sort groups #'string< :key #'resource-id)
+              groups (if user-group
+                         (cons user-group groups)
+                         groups))))
     (properties* groups)))
 
 ;;  VNode (filesystem node)
