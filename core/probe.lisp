@@ -94,6 +94,10 @@
     (add-probed-properties r result)
     result))
 
+(defmethod probe ((host host) (property symbol))
+  (with-host host
+    (call-next-method)))
+
 (defmethod get-probed ((r resource) (property symbol))
   (let ((value (get-property property (probed-properties r))))
     (when (eq +undefined+ value)
