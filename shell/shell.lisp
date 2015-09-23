@@ -72,10 +72,11 @@ Error: ~S"
 
 ;;  Shell
 
-(defun sh-quote (string)
-  (if (cl-ppcre:scan "^[-+/=.,:^_0-9A-Za-z]*$" string)
-      string
-      (str "\"" (cl-ppcre:regex-replace-all "([$`\\\\\"])" string "\\\\\\1") "\"")))
+(defun sh-quote (&rest str)
+  (let ((str (str str)))
+    (if (cl-ppcre:scan "^[-+/=.,:^_0-9A-Za-z]*$" str)
+        str
+        (str #\" (re-subst "([$`\\\\\"])" "\\\\\\1" str) #\"))))
 
 (defun sh-parse-integer (string)
   (when (< 0 (length string))
