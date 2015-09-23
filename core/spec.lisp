@@ -100,6 +100,11 @@
 (defmethod match-specified-value (resource property specified probed)
   (equalp specified (describe-probed-property-value resource property probed)))
 
+(defmethod match-specified-value (resource (property (eql :ensure))
+                                  (specified (eql :present))
+                                  (probed null))
+  t)
+
 ;;  Methods to get current status of resource
 
 (defgeneric resource-diff (resource)

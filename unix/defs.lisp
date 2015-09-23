@@ -21,20 +21,30 @@
 ;;  Group
 
 (define-resource-class group () ()
-  ((probe-group-in-/etc/group :properties (:name :passwd :gid :members))))
+  ((probe-group-in-/etc/group :properties (:ensure :name :passwd :gid :members)))
+  ((op-update-group :properties (:ensure :gid))))
 
 (defgeneric probe-group-in-/etc/group (resource os))
+(defgeneric op-update-group (resource os &key ensure gid))
 
 ;;  User
 
 (define-resource-class user ()
   ()
-  ((probe-user-in-/etc/passwd :properties (:login :uid :gid :realname :home
-                                           :shell))
-   (probe-user-groups-in-/etc/group :properties (:groups))))
+  ((probe-user-in-/etc/passwd :properties (:ensure :login :uid :gid :realname
+                                                   :home :shell))
+   (probe-user-groups-in-/etc/group :properties (:groups)))
+  ((op-update-user :properties (:ensure :uid :gid :realname :home :shell
+                                        :login-class :groups))))
 
 (defgeneric probe-user-in-/etc/passwd (resource os))
 (defgeneric probe-user-groups-in-/etc/group (resource os))
+(defgeneric op-update-user (resource os &key ensure uid gid realname home shell
+                                          login-class
+                                          groups))
+
+(defmethod resource-before-p ((r1 group) (r2 user))
+  t)
 
 ;;  Filesystem virtual node
 

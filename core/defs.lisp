@@ -184,7 +184,9 @@
   ((probe-os-using-uname :properties (:os))
    (probe-hostname :properties (:hostname))
    (probe-boot-time :properties (:boot-time))
-   (probe-host-user :properties (:user))))
+   (probe-host-user :properties (:user))
+   (probe-host-packages :properties (:packages)))
+  ((op-hostname :properties (:hostname))))
 
 (defgeneric probe-os-using-uname (host os))
 (defgeneric probe-hostname (host os))
