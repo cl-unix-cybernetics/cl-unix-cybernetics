@@ -50,6 +50,11 @@
   (let ((x (gensym)))
     `(for (,x ,var) in-hashtable (resource-registry ,container))))
 
+(defmethod child-resources ((res resource-container))
+  (sort (iter (for-resource child in res)
+              (collect child))
+        #'resource-before-p))
+
 ;;  Resource container
 
 (defmethod print-object ((rc resource-container) stream)

@@ -179,3 +179,13 @@
                      :os os
                      :host host
                      :resource res))))))
+
+(defmethod sync ((res resource-container))
+  (call-next-method)
+  (with-parent-resource res
+    (iter (for child in (child-resources res))
+          (sync child))))
+
+(defmethod sync ((host host))
+  (with-host host
+    (call-next-method)))
