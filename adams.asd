@@ -63,6 +63,7 @@
 	    ((:file "commands")
 	     (:file "defs")
 	     (:file "openbsd" :depends-on ("commands" "defs"))
+	     (:file "freebsd" :depends-on ("commands" "defs"))
 	     (:file "operations" :depends-on ("commands" "defs"))
 	     (:file "probes"  :depends-on ("commands" "defs"
 					   "stat" "syntaxes"))
