@@ -123,10 +123,12 @@ Second value lists properties in line with spec. Format is
 
 (defmethod resource-diff ((res resource-container))
   (append (call-next-method res)
-          (iter (for-resource r in res)
-                (for d = (resource-diff r))
-                (when d
-                  (collect (cons r d))))))
+          (sort (iter (for-resource r in res)
+                      (for d = (resource-diff r))
+                      (when d
+                        (collect (cons r d))))
+                #'resource-before-p
+                :key #'first)))
 
 (defmethod resource-diff ((host host))
   (with-host host

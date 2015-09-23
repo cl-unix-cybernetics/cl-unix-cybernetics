@@ -64,3 +64,8 @@
 
 (defun clear-resources (&optional (resource-container *parent-resource*))
   (clear-resources% resource-container))
+
+;;  Sorting resources
+
+(defmethod resource-before-p ((r1 resource) (r2 resource))
+  nil)

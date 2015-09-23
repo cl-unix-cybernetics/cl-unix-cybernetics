@@ -149,6 +149,8 @@
   `(let ((*parent-resource* ,(or resource '*adams*)))
      ,@body))
 
+(defgeneric resource-before-p (r1 r2))
+
 ;;  Specifying resources
 
 (defgeneric specified-property (resource property))
