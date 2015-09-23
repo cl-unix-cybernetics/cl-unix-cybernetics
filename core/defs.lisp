@@ -224,6 +224,7 @@
 ;;  Operating on resources
 
 (defgeneric find-operation (resource property os))
+(defgeneric list-operations (resource plist os))
 (defgeneric operate (resource plist))
 
 (define-condition resource-operation-error (error)

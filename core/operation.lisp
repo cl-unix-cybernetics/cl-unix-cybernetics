@@ -69,7 +69,7 @@
                 op))))
         (operations-of r)))
 
-(defun list-operations (res plist os)
+(defmethod list-operations (res plist os)
   (iter (for* (property value) in plist)
         (adjoining (or (find-operation res property os)
                        (error 'resource-operation-not-found
