@@ -35,3 +35,7 @@ All commands issued to the remote hosts can be logged.
 Adams does not grant the hosts access to its workstation while it works.
 Adams does not grant access to data belonging to any host.
 Adams does not send any data that is not of direct concern to the host.
+In short, all UNIX permissions are respected, Adams is a regular UNIX user.
+
+Usage
+-----
