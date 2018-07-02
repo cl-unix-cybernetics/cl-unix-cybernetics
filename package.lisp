@@ -19,7 +19,13 @@
 (in-package :cl-user)
 
 (defpackage :adams
-  (:use :alexandria :cl :debug :iterate :parse-number :re :str)
+  (:use
+   :alexandria
+   :common-lisp
+   :debug
+   :parse-number
+   :re
+   :str)
   (:shadow #:directory #:get-properties)
   (:export
    #:*adams*
