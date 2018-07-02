@@ -133,7 +133,7 @@
 (defclass resource-container (resource)
   ((resources :initarg :resources
 	      :initform (make-resource-registry)
-	      :type hashtable
+	      :type hash-table
 	      :reader resource-registry))
   (:metaclass resource-class))
 
