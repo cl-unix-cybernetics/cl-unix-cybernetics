@@ -35,14 +35,19 @@
   'probe)
 
 (defmethod compute-probes ((rc resource-class))
-  (iter (for class in (closer-mop:class-precedence-list rc))
-        (for direct-probes = (when (typep class 'resource-class)
-			       (direct-probes class)))
-	(dolist (probe-definition direct-probes)
-	  (collect (apply #'make-instance
-			  (probe-class rc)
-			  :name
-                          probe-definition)))))
+  (let ((class-precedence-list (closer-mop:class-precedence-list rc))
+        (probes))
+    (loop
+       (when (endp class-precedence-list)
+         (return))
+       (let* ((class (pop class-precedence-list))
+              (direct-probes (when (typep class 'resource-class)
+                               (direct-probes class))))
+         (dolist (probe-definition direct-probes)
+           (let ((probe (apply #'make-instance (probe-class rc)
+                               :name probe-definition)))
+             (push probe probes)))))
+    (nreverse probes)))
 
 (defmethod probe-properties ((rc resource-class))
   (let ((properties nil))

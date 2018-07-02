@@ -74,13 +74,18 @@
 
 (defun pprint-plist (plist &optional (stream *standard-output*))
   (pprint-logical-block (stream plist)
-    (iter (for* (k v) in plist)
-          (for first-line-p initially t then nil)
-          (unless first-line-p
-            (pprint-newline :mandatory stream))
-          (write k :stream stream)
-          (write-char #\Space stream)
-          (write v :stream stream))))
+    (let ((first-line-p t))
+      (loop
+         (when (endp plist)
+           (return))
+         (let ((k (pop plist))
+               (v (pop plist)))
+           (unless first-line-p
+             (pprint-newline :mandatory stream))
+           (setq first-line-p nil)
+           (write k :stream stream)
+           (write-char #\Space stream)
+           (write v :stream stream))))))
 
 #+nil
 (pprint-plist '(:a "aaa" :b "foo" :xyz "bar"))
@@ -102,17 +107,28 @@
       (mapcar #'resource-id value)
       value))
 
+(defun plist-keys (plist)
+  (let ((keys))
+    (loop
+       (when (endp plist)
+         (return))
+       (let ((key (pop plist))
+             (value (pop plist)))
+         (declare (ignore value))
+         (push key keys)))
+    keys))
+
+(declaim (ftype (function (list) list) plist-keys))
+
 (defmethod describe-probed% ((res resource) (out (eql :form)))
   (let* ((props (probe-all-properties res))
-         (sorted-keys (sort (iter (for* (k v) in props)
-                                  (collect k))
-                            #'string<))
-         (sorted-props (iter (for key in sorted-keys)
-                             (for value = (describe-probed-property-value
-                                           res key (get-property key props)))
-                             (when value
-                               (collect key)
-                               (collect value)))))
+         (sorted-keys (sort (plist-keys props) #'string<))
+         (sorted-props (mapcan (lambda (key)
+                                 (let ((value (describe-probed-property-value
+                                               res key (get-property key props))))
+                                   (when value
+                                     (list key value))))
+                                sorted-keys)))
     `(resource ',(class-name (class-of res))
                ,(resource-id res)
                ,@sorted-props)))
@@ -147,6 +163,25 @@
 
 ;;  Sync
 
+(defun sync-op (host res op op-keys op-plist os)
+  (let ((failed))
+    (dolist (property op-keys)
+      (let ((specified (get-property property op-plist)))
+        (when (not (eq specified +undefined+))
+          (let* ((probed (get-probed res property))
+                 (desc (describe-probed-property-value res property
+                                                       probed)))
+            (unless (match-specified-value res property specified desc)
+              (push (list property specified desc) failed))))))
+    (setq failed (nreverse failed))
+    (when failed
+      (error 'resource-operation-failed
+             :diff failed
+             :operation op
+             :os os
+             :host host
+             :resource res))))
+
 (defmethod sync ((res resource))
   (when-let ((diff (resource-diff res)))
     (let* ((plist (resource-diff-to-plist diff))
@@ -154,37 +189,26 @@
            (os (host-os host))
            (ops (list-operations res plist os))
            (sorted-ops (sort-operations ops)))
-      (iter (for op in sorted-ops)
-            (for op-keys = (operation-properties op))
-            (for op-plist = (get-properties op-keys plist))
-            (apply (operation-generic-function op)
-                   res os op-plist)
-            (clear-probed res op-keys)
-            (for failed = (iter (for property in op-keys)
-                                (for specified = (get-property property
-                                                               op-plist))
-                                (when (not (eq specified +undefined+))
-                                  (for probed = (get-probed res property))
-                                  (for desc = (describe-probed-property-value
-                                               res property probed))
-                                  (unless (match-specified-value
-                                           res property specified desc)
-                                    (collect property)
-                                    (collect specified)
-                                    (collect desc)))))
-            (when failed
-              (error 'resource-operation-failed
-                     :diff failed
-                     :operation op
-                     :os os
-                     :host host
-                     :resource res))))))
+      (loop
+         (when (endp sorted-ops)
+           (return))
+         (let* ((op (pop sorted-ops))
+                (op-keys (operation-properties op))
+                (op-plist (get-properties op-keys plist))
+                (op-fun (operation-generic-function op)))
+           (apply op-fun res os op-plist)
+           (clear-probed res op-keys)
+           (sync-op host res op op-keys op-plist os))))))
 
 (defmethod sync ((res resource-container))
   (call-next-method)
   (with-parent-resource res
-    (iter (for child in (child-resources res))
-          (sync child))))
+    (let ((child-resources (child-resources res)))
+      (loop
+         (when (endp child-resources)
+           (return))
+         (let ((child (pop child-resources)))
+           (sync child))))))
 
 (defmethod sync ((host host))
   (with-host host

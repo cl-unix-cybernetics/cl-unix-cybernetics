@@ -33,7 +33,6 @@
 	       "cl-ppcre"
 	       "closer-mop"
 	       "ironclad"
-	       "iterate"
                "parse-number"
 	       "re"
 	       "str"

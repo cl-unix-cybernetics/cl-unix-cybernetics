@@ -46,14 +46,18 @@
 		      parent)
 	child))
 
-(iterate:defmacro-clause (for-resource var in container)
+(defmacro do-resources ((var) container &body body)
   (let ((x (gensym)))
-    `(for (,x ,var) in-hashtable (resource-registry ,container))))
+    `(maphash (lambda (,x ,var)
+                (declare (ignore ,x))
+                ,@body)
+              (resource-registry ,container))))
 
 (defmethod child-resources ((res resource-container))
-  (sort (iter (for-resource child in res)
-              (collect child))
-        #'resource-before-p))
+  (let ((resources))
+    (do-resources (child) res
+      (push child resources))
+    (sort resources #'resource-before-p)))
 
 ;;  Resource container
 

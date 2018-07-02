@@ -22,9 +22,9 @@
 
 (defun get-sh-var (name file)
   (let (value)
-    (iter (sh-var (var val) in (egrep (str "^" name "=") file))
-          (when (string= name var)
-            (setq value val)))
+    (with-sh-var (var val) (egrep (str "^" name "=") file)
+      (when (string= name var)
+        (setq value val)))
     value))
 
 (defsetf get-sh-var (name file) (value)
@@ -96,14 +96,15 @@
     #~|^([-_0-9A-Za-z]+)-([_.,0-9A-Za-z]+)\s+([=<>?!])$|)
 
 (defmethod probe-host-packages ((host host) (os os-freebsd))
-  (properties :packages (iter (freebsd-pkg-version<8> (name version ensure)
-                                                      in (run "pkg version"))
-                              (when (and name version ensure)
-                                (let ((pkg (resource 'freebsd-pkg name))
-                                      (versions (list version)))
-                                  (add-probed-properties pkg (properties*
-                                                              versions ensure))
-                                  (collect pkg))))))
+  (let ((packages))
+    (with-freebsd-pkg-version<8> (name version ensure)
+        (run "pkg version")
+      (when (and name version ensure)
+        (let ((pkg (resource 'freebsd-pkg name))
+              (versions (list version)))
+          (add-probed-properties pkg (properties* versions ensure))
+          (push pkg packages))))
+    (properties :packages (nreverse packages))))
 
 (define-resource-class freebsd-pkg (pkg)
   ()
@@ -114,12 +115,11 @@
   (let ((id (resource-id pkg))
         (ensure :absent)
         versions)
-    (iter (freebsd-pkg-version<8> (name ver status) in
-                                  (run "pkg version | egrep ^"
-                                       (sh-quote id) "-"))
-          (when (equal id name)
-            (setq ensure status)
-            (push ver versions)))
+    (with-freebsd-pkg-version<8> (name ver status)
+        (run "pkg version | egrep ^" (sh-quote id) "-")
+      (when (equal id name)
+        (setq ensure status)
+        (push ver versions)))
     (properties* ensure versions)))
 
 (defmethod op-freebsd-pkg ((pkg freebsd-pkg) (os os-freebsd)

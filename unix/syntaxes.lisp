@@ -73,13 +73,19 @@
   "Syntax for /etc/fstab, see fstab(5)."
   (values device mp type
           (re-matches #~|[^,]+| options)
-          (parse-integer freq)
-          (parse-integer passno)))
+          (when freq (parse-integer freq))
+          (when passno (parse-integer passno))))
 
 (defun parse-ps-time (string)
   (or (re-bind #~|^\s*([0-9]+):([0-9]*\.[0-9]*)$| (d h) string
-        (+ (* 3600 24 (the non-negative-fixnum (parse-integer d)))
-           (truncate (* 3600 (parse-number h)))))
+        (let* ((id (if d (parse-integer d) 0))
+               (nh (if h (parse-number h) 0))
+               (id-sec (* 3600 24 id))
+               (nh-sec (* 3600 nh))
+               (ih-sec (truncate nh-sec))
+               (sec (+ id-sec ih-sec)))
+          (declare (type fixnum id nh id-sec nh-sec sec))
+          sec))
       (error "Invalid ps(1) time ?")))
 
 (define-syntax ps<1>-u (user
@@ -107,28 +113,25 @@
   (find char +sh-word-delimiters+ :test #'eq))
 
 (defun parse-sh-var-value (string)
+  (declare (type string string))
   (with-output-to-string (out)
-    (iter (with quote = nil)
-          (with backslash = nil)
-          (for i below (length string))
-          (for c = (char string i))
-          (cond
-            (backslash
-             (setq backslash nil)
-             (write-char c out))
-            ((and (eq #\\ c) (not (eq #\' quote)))
-             (setq backslash t))
-            ((eq quote c)
-             (setq quote nil))
-            ((and (null quote) (or (eq #\" c) (eq #\' c)))
-             (setq quote c))
-            ((and (null quote) (sh-word-delimiter-p c))
-             (finish))
-            (:otherwise
-             (write-char c out)))
-          (finally
-           (when (or quote backslash)
-             (error "Unmatched quote"))))))
+    (let ((quote)
+          (backslash)
+          (i 0))
+      (declare (type fixnum i))
+      (loop
+         (unless (< i (length string))
+           (return))
+         (let ((c (char string i)))
+           (cond
+             (backslash (setq backslash nil) (write-char c out))
+             ((and (eq #\\ c) (not (eq #\' quote))) (setq backslash t))
+             ((eq quote c) (setq quote nil))
+             ((and (null quote) (or (eq #\" c) (eq #\' c))) (setq quote c))
+             ((and (null quote) (sh-word-delimiter-p c)) (return))
+             (:otherwise (write-char c out)))))
+      (when (or quote backslash)
+        (error "Unmatched quote")))))
 
 (define-syntax sh-var (var (#'parse-sh-var-value value))
     #~|^\s*(\w*)=(.*)|)

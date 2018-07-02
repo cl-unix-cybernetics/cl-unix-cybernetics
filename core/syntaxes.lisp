@@ -22,36 +22,52 @@
 
 ;;  Simple regexp-based parser generator with ITERATE support
 
-(defmacro define-syntax (name vars re &body body)
-  (let ((parse-name (sym 'parse- name))
-	(doc (when (stringp (first body)) (pop body)))
-	(values (or (first (last body))
-		    `(values ,@(iter (for spec in vars)
-				     (if (consp spec)
-					 (dolist (var (cdr spec))
-					   (collect var))
-					 (collect spec)))))))
+(eval-when (:compile-toplevel :load-toplevel :execute)
+  (defun collect-vars (specs)
+    (let ((vars))
+      (dolist (spec specs)
+        (if (consp spec)
+            (dolist (var (rest spec))
+              (push var vars))
+            (push spec vars)))
+      (nreverse vars))))
+
+(defmacro define-syntax (name specs re &body body)
+  (let* ((parse-name (sym 'parse- name))
+         (with-name (sym 'with- name))
+         (doc (when (stringp (first body)) (pop body)))
+         (vars (collect-vars specs))
+         (values (or (first (last body)) `(values ,@vars))))
     `(progn
        (defun ,parse-name (line)
 	 ,@(when doc (list doc))
+         (declare (type string line))
 	 (re-bind ,re ,vars line
 	   ,@(or body `(,values))))
-       (iterate:defmacro-clause (,name iter-vars in lines)
+       (defmacro ,with-name ((,@vars) lines &body with-body)
 	 ,@(when doc (list doc))
-	 (let ((line (gensym ,(format nil "~A-LINE-" (symbol-name name)))))
-	   `(progn (for ,line in ,lines)
-		   (for (values ,@iter-vars) = (,',parse-name ,line))))))))
+         `(dolist (line ,lines)
+            (declare (type string line))
+            (multiple-value-bind (,,@vars) (,',parse-name line)
+              (declare (ignorable ,,@vars))
+              ,@with-body))))))
 
 ;;  Host
 
 (defun parse-uptime (string)
-  (or (re-bind #~|^\s*([0-9]+ days,\s*)?([0-9]+):([0-9]+)\s*$| (d h m) string
-        (* 60 (+ (parse-integer m)
-                 (* 60
-                    (+ (parse-integer h)
-                       (if d
-                           (* 24 (parse-integer d :junk-allowed t))
-                           0))))))
+  (or (re-bind #~|^\s*([0-9]+ days,\s*)?([0-9]+):([0-9]+)\s*$|
+          (d h m) string
+        (let* ((im (if m (parse-integer m) 0))
+               (ih (if h (parse-integer h) 0))
+               (id (if d (parse-integer d :junk-allowed t) 0))
+               (id-hours (* 24 id))
+               (hours (+ ih id-hours))
+               (hours-minutes (* 60 hours))
+               (minutes (+ im hours-minutes))
+               (seconds (* 60 minutes)))
+          (declare (type fixnum im ih id id-hours hours
+                         hours-minutes minutes seconds))
+          seconds))
       (error "Invalid uptime ?")))
 
 (define-syntax uptime<1> ((#'chronicity:parse time)

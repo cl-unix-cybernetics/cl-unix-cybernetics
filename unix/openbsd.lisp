@@ -33,12 +33,12 @@
 
 (defmethod probe-openbsd-pkg ((pkg openbsd-pkg) (os os-openbsd))
   (let ((id (resource-id pkg)))
-    (multiple-value-bind #1=(versions)
-      (iter (pkg_info<1> (name versions) in
-                         (run "pkg_info | egrep ~A" (sh-quote (str "^" id "-"))))
-            (when (string= id name)
-              (return (values* #1#))))
-      (properties* #1#))))
+    (multiple-value-bind (versions)
+      (with-pkg_info<1> (name versions)
+          (run "pkg_info | egrep ~A" (sh-quote (str "^" id "-")))
+        (when (string= id name)
+          (return (values versions))))
+      (properties* versions))))
 
 (defmethod merge-property-values ((pkg openbsd-pkg)
                                   (property (eql :versions))
@@ -49,11 +49,12 @@
 
 (defmethod probe-installed-packages% ((host host) (os os-openbsd))
   (with-host host
-    (iter (pkg_info<1> #1=(name versions flavors)
-                       in (run "pkg_info"))
-          (for pkg = (resource 'openbsd-pkg name))
-          (add-probed-properties pkg (properties* #1#))
-          (adjoining pkg))))
+    (let ((packages))
+      (with-pkg_info<1> (name versions) (run "pkg_info")
+        (let ((pkg (resource 'openbsd-pkg name)))
+          (add-probed-properties pkg (properties* name versions))
+          (push pkg packages)))
+      (nreverse packages))))
 
 (defun probe-installed-packages (&optional (host (current-host)))
   (probe-installed-packages% host (host-os host)))

@@ -38,14 +38,19 @@
   'operation)
 
 (defmethod compute-operations ((rc resource-class))
-  (iter (for class in (closer-mop:class-precedence-list rc))
-        (for direct-ops = (when (typep class 'resource-class)
-                            (direct-operations class)))
-	(dolist (op-definition direct-ops)
-	  (collect (apply #'make-instance
-			  (operation-class rc)
-			  :name
-                          op-definition)))))
+  (let ((class-precedence-list (closer-mop:class-precedence-list rc))
+        (ops))
+    (loop
+       (when (endp class-precedence-list)
+         (return))
+       (let* ((class (pop class-precedence-list))
+              (direct-ops (when (typep class 'resource-class)
+                            (direct-operations class))))
+         (dolist (op-definition direct-ops)
+           (let ((op (apply #'make-instance (operation-class rc)
+                            :name op-definition)))
+             (push op ops)))))
+    (nreverse ops)))
 
 (defmethod operation-properties ((rc resource-class))
   (let ((properties nil))
@@ -73,13 +78,22 @@
         (operations-of r)))
 
 (defmethod list-operations (res plist os)
-  (iter (for* (property value) in plist)
-        (adjoining (or (find-operation res property os)
-                       (error 'resource-operation-not-found
-                              :resource res
-                              :property property
-                              :host (current-host)
-                              :os os)))))
+  (let (operations)
+    (loop
+       (when (endp plist)
+         (return))
+       (let* ((property (pop plist))
+              (value (pop plist))
+              (op (find-operation res property os)))
+         (declare (ignore value))
+         (unless op
+           (error 'resource-operation-not-found
+                  :resource res
+                  :property property
+                  :host (current-host)
+                  :os os))
+         (push op operations)))
+    (nreverse operations)))
 
 (defun sort-operations (operations)
   (sort operations (lambda (op1 op2)
@@ -88,10 +102,14 @@
 (defmethod operate ((res resource) (plist list))
   (let* ((os (host-os (current-host)))
          (operations (list-operations res plist os))
-         (sorted-ops (sort-operations operations)))
-    (iter (for op in sorted-ops)
-          (collect (apply (operation-generic-function op)
-                          res os plist)))))
+         (sorted-ops (sort-operations operations))
+         (results))
+    (loop
+       (let* ((op (pop sorted-ops))
+              (result (apply (operation-generic-function op)
+                             res os plist)))
+         (push result results)))
+    (nreverse results)))
 
 ;;  Conditions
 

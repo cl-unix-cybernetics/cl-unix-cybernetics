@@ -245,16 +245,6 @@
 ;;  Operators on property lists
 
 (defmacro remf* (place indicator)
-  `(iter (while (remf ,place ,indicator))
-         (counting t)))
-
-(iterate:defmacro-clause (for* vars in list)
-  (let ((l (gensym "LIST-")))
-    `(progn
-       (with ,l = ,list)
-       (while ,l)
-       ,@(iter (for var in vars)
-               (collect `(for ,var = (if ,l
-                                         (pop ,l)
-                                         (error "~S is not congruent to ~S"
-                                                ',list ',vars))))))))
+  `(loop
+      (unless (remf ,place ,indicator)
+        (return))))

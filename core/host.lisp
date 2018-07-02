@@ -149,9 +149,9 @@
   (cons :hostname (run "hostname")))
 
 (defmethod probe-boot-time ((host host) (os os-unix))
-  (iter (uptime<1> (time uptime users load1 load5 load15) in (run "uptime"))
-        (return (list :boot-time (chronicity:parse
-                                  (str uptime " seconds ago"))))))
+  (with-uptime<1> (time uptime users load1 load5 load15) (run "uptime")
+    (return (list :boot-time (chronicity:parse
+                              (str uptime " seconds ago"))))))
 
 (defmethod probe-host-user ((host host) (os os-unix))
   (list :user (first (run "whoami"))))

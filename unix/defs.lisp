@@ -76,9 +76,12 @@
 (define-resource-class file (vnode)
   ()
   ((probe-file-content :properties (:content))
-   . #.(iter (for algorithm in *cksum-algorithms*)
-	     (collect `(,(sym 'probe-file-cksum- algorithm)
-			 :properties (,algorithm))))))
+   . #.(let ((algorithms))
+         (dolist (algorithm *cksum-algorithms*)
+           (push `(,(sym 'probe-file-cksum- algorithm)
+                    :properties (,algorithm))
+                 algorithms))
+         (nreverse algorithms))))
 
 (defgeneric probe-file-content (resource os))
 

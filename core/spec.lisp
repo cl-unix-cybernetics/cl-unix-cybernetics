@@ -52,13 +52,14 @@
   res)
 
 (defmethod parse-specification ((res resource) (spec cons))
-  (iter (while spec)
-	(for next-spec = (parse-next-specification res spec))
-	(when (eq spec next-spec)
-	  (error "Invalid specification : ~S" spec))
-	(setq spec next-spec))
+  (loop
+     (when (endp spec)
+       (return))
+     (let ((next-spec (parse-next-specification res spec)))
+       (when (eq spec next-spec)
+         (error "Invalid specification : ~S" spec))
+       (setq spec next-spec)))
   res)
-
 
 #+nil
 (parse-specification *localhost*
@@ -115,33 +116,45 @@ Second value lists properties in line with spec. Format is
   (PROPERTY-NAME VALUE)"))
 
 (defmethod resource-diff ((res resource))
-  (iter (for* (property specified) in (specified-properties res))
-        (for probed = (get-probed res property))
-        (for desc = (describe-probed-property-value res property probed))
-        (if (match-specified-value res property specified desc)
-            (collect `(,property ,specified) into ok)
-            (collect `(,property ,specified ,desc) into diff))
-        (finally (return diff))))
+  (let ((specified-properties (specified-properties res))
+        ok diff)
+    (loop
+       (when (endp specified-properties)
+         (return))
+       (let* ((sp (pop specified-properties))
+              (property (first sp))
+              (specified (second sp))
+              (probed (get-probed res property))
+              (desc (describe-probed-property-value res property probed)))
+         (if (match-specified-value res property specified desc)
+             (push sp ok)
+             (push `(,property ,specified ,desc) diff))))
+    diff))
 
 #+nil
 (resource-diff (resource 'directory "/" :owner "root" :uid 0))
 
 (defmethod resource-diff ((res resource-container))
-  (append (call-next-method res)
-          (sort (iter (for-resource r in res)
-                      (for d = (resource-diff r))
-                      (when d
-                        (collect (cons r d))))
-                #'resource-before-p
-                :key #'first)))
+  (let ((diffs))
+    (do-resources (r) res
+      (let ((d (resource-diff r)))
+        (when d
+          (push (cons r d) diffs))))
+    (append (call-next-method res)
+            (sort diffs #'resource-before-p :key #'first))))
 
 (defmethod resource-diff ((host host))
   (with-host host
     (call-next-method)))
 
 (defun resource-diff-to-plist (diff)
-  (iter (for item in diff)
-        (for key = (first item))
-        (when (keywordp key)
-          (collect key)
-          (collect (second item)))))
+  (let ((plist))
+    (loop
+       (when (endp diff)
+         (return))
+       (let* ((item (pop diff))
+              (key (first item)))
+         (when (keywordp key)
+           (push (second item) plist)
+           (push key plist))))
+    (nreverse plist)))
