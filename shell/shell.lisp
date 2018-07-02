@@ -151,9 +151,9 @@ Error: ~S"
 	   (err (shell-err/line shell)))
       (when (shell-log-p shell)
 	(dolist (line out)
-	  (shell-log shell "│ ~A~%" line))
+	  (shell-log shell "| ~A~%" line))
 	(dolist (line err)
-	  (shell-log shell "┃ ~A~&" line))
+	  (shell-log shell "# ~A~&" line))
 	(shell-log shell   " ⇒ ~D~%" status))
       (values status out err))))
 
