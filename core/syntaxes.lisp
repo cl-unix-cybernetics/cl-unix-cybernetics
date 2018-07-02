@@ -75,4 +75,4 @@
                           (#'parse-integer users)
                           (#'parse-number load1 load5 load15))
   #~|^\s*(\S+)\s+up\s+(.+), ([0-9]+) users?, load averages: ([0-9.]+), ([0-9.]+), ([0-9.]+)$|
-  "Syntax of the group permissions file /etc/group. See group(5).")
+  "Syntax of the uptime command output. See uptime(1).")
