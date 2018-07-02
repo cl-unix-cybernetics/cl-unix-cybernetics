@@ -29,20 +29,14 @@
 
 (setf (debug-p :shell) t)
 
-(with-host "h"
-  (run "hostname && false")
-  (run "pwd")
-  (run "ls")
-  (run "exit"))
+(with-host "root@dc"
+  (describe-probed (make-instance 'user :id "root")))
 
-(with-manifest "h"
-  (make-instance 'user :name "vmail"
-		 :shell "/bin/ksh"
-		 :home "/var/qmail/domains"
-		 :gid 13000
-		 :uid 13000))
+(with-manifest "root@dc"
+  (make-instance 'user :id "thodg"))
 
-(adams::apply-manifest "h")
+  (with-host "root@dc"
+    (adams::apply-manifest "root@dc")
 
 (manifest-resources (manifest "h"))
 
