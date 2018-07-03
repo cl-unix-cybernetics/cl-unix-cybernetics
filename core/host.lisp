@@ -79,8 +79,9 @@
     (shell-close (host-shell host))
     (slot-makunbound host 'shell)))
 
-(defun host (host)
+(defun host (&optional host)
   (etypecase host
+    (null (localhost))
     (host host)
     (string (if (or (string-equal (local-hostname) host)
                     (string-equal "localhost" host)
