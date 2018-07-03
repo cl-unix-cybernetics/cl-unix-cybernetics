@@ -159,3 +159,10 @@
 
 (defmethod probe-host-user ((host host) (os os-unix))
   (list :user (first (run "whoami"))))
+
+(defmethod compare-property-values ((host host)
+                                    (property (eql :os))
+                                    (a os)
+                                    (b os))
+  (string= (prin1-to-string a)
+           (prin1-to-string b)))
