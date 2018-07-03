@@ -150,7 +150,7 @@
 				 :version version))))))
 
 (defmethod probe-hostname ((host host) (os os-unix))
-  (cons :hostname (run "hostname")))
+  (list :hostname (first (run "hostname"))))
 
 (defmethod probe-boot-time ((host host) (os os-unix))
   (with-uptime<1> (time uptime users load1 load5 load15) (run "uptime")
