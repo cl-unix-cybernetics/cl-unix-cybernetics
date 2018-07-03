@@ -47,17 +47,14 @@
   (sort (remove-duplicates (append old new))
         #'string<))
 
-(defmethod probe-installed-packages% ((host host) (os os-openbsd))
+(defmethod probe-host-packages ((host host) (os os-openbsd))
   (with-host host
     (let ((packages))
       (with-pkg_info<1> (name versions) (run "pkg_info")
         (let ((pkg (resource 'openbsd-pkg name)))
           (add-probed-properties pkg (properties* name versions))
           (push pkg packages)))
-      (nreverse packages))))
-
-(defun probe-installed-packages (&optional (host (current-host)))
-  (probe-installed-packages% host (host-os host)))
+      (list :packages (nreverse packages)))))
 
 #+nil
 (clear-resources)
