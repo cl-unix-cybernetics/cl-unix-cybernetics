@@ -101,7 +101,8 @@
   (let ((g!host (gensym "HOST-")))
     `(let ((,g!host (make-instance 'host :id ,hostname)))
        (unwind-protect (let ((,var ,g!host)) ,@body)
-         (host-disconnect ,g!host)))))
+         (unless (eq (localhost) ,g!host)
+           (host-disconnect ,g!host))))))
 
 (defmethod host-run ((hostname string) &rest command)
   (with-connected-host (host hostname)
