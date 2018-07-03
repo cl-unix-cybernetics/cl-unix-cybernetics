@@ -83,7 +83,7 @@
 
 ;;  Pkg
 
-(defun freebsd-pkg-version-status (str)
+(defun freebsd-pkg-version<8>-status (str)
   (cond ((equal "=" str) :latest)
         ((equal "<" str) :update-available)
         ((equal ">" str) :newer)
@@ -92,7 +92,7 @@
         (:otherwise nil)))
 
 (define-syntax freebsd-pkg-version<8> (name version
-                                       (#'parse-freebsd-version-status status))
+                                       (#'freebsd-pkg-version<8>-status status))
     #~|^([-_0-9A-Za-z]+)-([_.,0-9A-Za-z]+)\s+([=<>?!])$|)
 
 (defmethod probe-host-packages ((host host) (os os-freebsd))
