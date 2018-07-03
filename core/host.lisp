@@ -91,8 +91,10 @@
 
 (defmethod host-run ((host host) &rest command)
   (let ((shell (host-shell host)))
-    (when (shell-closed-p shell)
-      (setq shell (host-connect host)))
+    (loop
+       (if (shell-closed-p shell)
+           (setq shell (host-connect host))
+           (return)))
     (apply #'shell-run shell command)))
 
 (defmacro with-connected-host ((var hostname) &body body)
