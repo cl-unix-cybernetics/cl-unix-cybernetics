@@ -68,7 +68,7 @@
 ;;  Host
 
 (defun parse-uptime (string)
-  (or (re-bind #~|^\s*([0-9]+ days,\s*)?([0-9]+):([0-9]+)\s*$|
+  (or (re-bind #~|^\s*([0-9]+ days?,\s*)?([0-9]+):([0-9]+)\s*$|
           (d h m) string
         (let* ((im (if m (parse-integer m) 0))
                (ih (if h (parse-integer h) 0))
@@ -87,5 +87,5 @@
                           (#'parse-uptime uptime)
                           (#'parse-integer users)
                           (#'parse-number load1 load5 load15))
-  #~|^\s*(\S+)\s+up\s+(.+), ([0-9]+) users?, load averages: ([0-9.]+), ([0-9.]+), ([0-9.]+)$|
+  #~|^\s*(\S+)\s+up\s+(.+),\s+([0-9]+)\s+users?,\s+load averages?: ([0-9.,]+), ([0-9.,]+), ([0-9.,]+)$|
   "Syntax of the uptime command output. See uptime(1).")
