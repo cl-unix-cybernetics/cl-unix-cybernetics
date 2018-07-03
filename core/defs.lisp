@@ -168,7 +168,7 @@
 	    :type string)
    (name :initarg :name
 	 :reader os-name
-	 :type string)
+	 :type (or symbol string))
    (release :initarg :release
 	    :reader os-release
 	    :type string)

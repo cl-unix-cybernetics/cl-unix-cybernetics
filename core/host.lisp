@@ -126,28 +126,46 @@
   (with-host host
     (call-next-method)))
 
+(defun linux-name (name)
+  (when (string-equal (symbol-name 'linux) name)
+    'linux))
+
+(defun debian-version (version)
+  (when (search (symbol-name 'debian) version :test #'char-equal)
+    'debian))
+
 (defmethod probe-os-using-uname ((host host) (os t))
   (multiple-value-bind (name hostname release version machine) (uname)
     (declare (ignore hostname))
-    (let ((class (flet ((try (&rest parts)
-			  (when-let ((s (find-symbol (string-upcase (str 'os- parts))
-						     #.*package*)))
-			    (ignore-errors (find-class s)))))
-		   (or (try name '- release '- machine '- version)
-		       (try name '- release '- machine)
-		       (try name '- release '- version)
-		       (try name '- release)
-		       (try name '- machine '- version)
-		       (try name '- machine)
-		       (try name '- version)
-		       (try name)
-		       (warn "Unknown OS : ~A" name)))))
+    (let* ((name (or (linux-name name)
+                     name))
+           (distrib (or (debian-version version)))
+           (class (flet ((try (&rest parts)
+                           (when-let ((s (find-symbol (string-upcase (str 'os- parts))
+                                                      *package*)))
+                             (ignore-errors (find-class s)))))
+                    (or (try name '- release '- machine '- distrib)
+                        (try name '- release '- machine '- version)
+                        (try name '- release '- machine)
+                        (try name '- release '- distrib)
+                        (try name '- release '- version)
+                        (try name '- release)
+                        (try name '- machine '- distrib)
+                        (try name '- machine '- version)
+                        (try name '- machine)
+                        (try name '- distrib)
+                        (try name '- version)
+                        (try name)
+                        (warn "Unknown OS : ~A" name)))))
       (when class
-	(list :os (make-instance class
-				 :machine machine
-				 :name name
-				 :release release
-				 :version version))))))
+        (let ((plist (list :machine machine
+                           :name name
+                           :release release
+                           :version version)))
+          (when distrib
+            (setf plist (list* :distrib distrib plist)))
+          (let ((os (apply #'make-instance class plist)))
+            (list :os os)))))))
 
 (defmethod probe-hostname ((host host) (os os-unix))
   (list :hostname (first (run "hostname"))))

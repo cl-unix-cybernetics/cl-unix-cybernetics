@@ -40,7 +40,12 @@
 
 ;;  Linux
 
-(defclass os-linux (os-unix) ())
+(defclass os-linux (os-unix)
+  ((distrib :initarg :distrib
+            :accessor os-distrib
+            :type symbol)))
+
+(defclass os-linux-debian (os-linux) ())
 
 ;;  BSD
 

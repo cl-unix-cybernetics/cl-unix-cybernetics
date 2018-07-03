@@ -60,6 +60,7 @@
    (:module "unix" :depends-on ("package" "shell" "core")
 	    :components
 	    ((:file "commands")
+	     (:file "debian" :depends-on ("commands" "defs"))
 	     (:file "defs")
 	     (:file "openbsd" :depends-on ("commands" "defs"))
 	     (:file "freebsd" :depends-on ("commands" "defs"))
