@@ -87,11 +87,14 @@
    #:parse-specification
    #:parse-next-specification
    ;;  OS
+   #:debian
+   #:linux
    #:os
    #:os-bsd
    #:os-darwin
    #:os-freebsd
    #:os-linux
+   #:os-linux-debian
    #:os-machine
    #:os-name
    #:os-openbsd
@@ -139,7 +142,11 @@
    #:+timestamp-offset+
    #:timestamp-to-universal-time
    #:universal-time-to-timestamp
-   #:user))
+   #:user
+   #:with-uptime<1>
+   ;; OpenBSD
+   #:openbsd-pkg
+   ))
 
 (defpackage :adams-user
   (:use :adams :cl :cl-debug :re)
