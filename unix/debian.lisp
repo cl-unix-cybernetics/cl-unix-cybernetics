@@ -22,12 +22,25 @@
 
 (define-resource-class debian-pkg (pkg)
   ()
-  ((probe-apt-pkg :properties (:versions))))
+  ((probe-debian-pkg :properties (:versions))))
 
 (define-syntax apt<8>-list (name release version arch tags)
   #~|([^/\s]+)(?:/([^\s]*))?\s+([^\s]+)\s+([^\s]+)(?:\s+\[([^\]]+)\])?|
   "Syntax for apt(8) list on Linux Debian"
   (values name release version arch (cl-ppcre:split "," tags)))
+
+(defmethod probe-debian-pkg ((pkg debian-pkg) (os os-linux-debian))
+  (let ((id (resource-id pkg))
+        (ensure :absent))
+    (multiple-value-bind #1=(release version arch tags)
+        (with-apt<8>-list (name . #1#)
+            (run "apt list | grep " id)
+          (declare (type string name))
+          (when (string= id name)
+            (when (find "installed" (the list tags))
+              (setf ensure :installed))
+            (return (values* #1#))))
+      (properties* (ensure . #1#)))))
 
 (defmethod probe-host-packages ((host host) (os os-linux-debian))
   (with-host host
