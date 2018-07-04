@@ -25,20 +25,22 @@
   ((probe-openbsd-pkg :properties (:versions))))
 
 (define-syntax pkg_info<1> (name version)
-  #~|\s*((?:[^-\s]+)(?:-[^-0-9\s][^-\s]*)*)-([0-9][^-\s]*-[^\s]+)?|
+  #~|\s*([^-\s]+(?:-[^-0-9\s][^-\s]*)*)-([0-9][^-\s]*(?:-[^\s]+)*)|
   "Syntax for pkg_info(1) on OpenBSD"
   (values name (list version)))
 
 (defgeneric probe-openbsd-pkg (resource os))
 
 (defmethod probe-openbsd-pkg ((pkg openbsd-pkg) (os os-openbsd))
-  (let ((id (resource-id pkg)))
+  (let ((id (resource-id pkg))
+        (ensure :absent))
     (multiple-value-bind (versions)
       (with-pkg_info<1> (name versions)
-          (run "pkg_info | egrep ~A" (sh-quote (str "^" id "-")))
+          (run "pkg_info | egrep " (sh-quote (str "^" id "-")))
         (when (string= id name)
+          (setf ensure :installed)
           (return (values versions))))
-      (properties* versions))))
+      (properties* ensure versions))))
 
 (defmethod merge-property-values ((pkg openbsd-pkg)
                                   (property (eql :versions))
