@@ -29,6 +29,7 @@
   (:shadow #:directory #:get-properties)
   (:export
    #:*adams*
+   #:*host*
    ;;  Shell
    #:*default-shell-command*
    #:*shell-signal-errors*

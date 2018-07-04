@@ -38,6 +38,9 @@
     (or #1=(get-resource 'host id)
         (setf #1# (make-instance 'host :id id)))))
 
+(unless (boundp '*host*)
+  (setf *host* (localhost)))
+
 (defun host-user (host)
   (specified-property host :user))
 
