@@ -105,7 +105,7 @@
 ;;  Resource base class
 
 (defclass resource (standard-object)
-  ((id :type atom
+  ((id :type string
        :initarg :id
        :initform (error "Missing ID for resource.")
        :reader resource-id)
@@ -118,6 +118,8 @@
 		      :initform nil
 		      :accessor probed-properties))
   (:metaclass resource-class))
+
+(declaim (ftype (function (resource) string) resource-id))
 
 (defgeneric resource-probes-properties (resource))
 
