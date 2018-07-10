@@ -66,7 +66,7 @@
           (let ((,var (pop ,resources)))
             (declare (type resource ,var))
             ,@body)))))
- 
+
 ;;  Resource container
 
 (defmethod print-object ((rc resource-container) stream)
