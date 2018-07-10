@@ -66,6 +66,9 @@
                                     (value2 local-time:timestamp))
   (local-time:timestamp= value1 value2))
 
+(defmethod merge-property-values (resource property (old null) new)
+  new)
+
 (defmethod merge-property-values (resource property old new)
   (unless (compare-property-values resource property old new)
     (warn "Conflicting values for property ~A in
