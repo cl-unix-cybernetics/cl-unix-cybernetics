@@ -120,7 +120,12 @@
     (when p
       (clear-probed r p))))
 
-(defun clear-probed (&optional (resource (localhost)) properties)
+(defmethod clear-probed% ((res resource-container) properties)
+  (call-next-method)
+  (do-resources (child) res
+    (clear-probed% child properties)))
+
+(defun clear-probed (&optional (resource *parent-resource*) properties)
   (clear-probed% resource properties))
 
 ;;  Conditions
