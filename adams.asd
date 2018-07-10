@@ -60,12 +60,12 @@
    (:module "unix" :depends-on ("package" "shell" "core")
 	    :components
 	    ((:file "commands")
-	     (:file "debian" :depends-on ("commands" "defs"))
+	     (:file "debian" :depends-on ("commands" "defs" "syntaxes"))
 	     (:file "defs")
 	     (:file "openbsd" :depends-on ("commands" "defs"))
 	     (:file "freebsd" :depends-on ("commands" "defs"))
 	     (:file "operations" :depends-on ("commands" "defs"))
 	     (:file "probes"  :depends-on ("commands" "defs"
-					   "stat" "syntaxes"))
+                                           "stat" "syntaxes"))
 	     (:file "stat")
 	     (:file "syntaxes")))))
