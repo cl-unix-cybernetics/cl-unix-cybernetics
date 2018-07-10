@@ -43,21 +43,21 @@
 
 ;;  User
 
-(defmethod op-update-user ((user user) (os os-unix) &key ensure uid gid
-                                                      realname home shell
-                                                      login-class
-                                                      groups)
+(defmethod op-update-user ((user user) (os os-unix)
+                           &key ensure uid gid realname home shell
+                             login-class groups)
   (run-as-root
    (join-str " "
              (ecase ensure
                ((:absent)  "userdel")
-               ((:present) "useradd")
+               ((:present) "useradd -m")
                ((nil)      "usermod"))
              (when realname `("-c" ,(sh-quote realname)))
              (when home `("-d" ,(sh-quote home)))
              (when gid `("-g" ,(sh-quote gid)))
              (when login-class `("-L" ,(sh-quote login-class)))
-             (when groups `("-S" ,(join-str "," (mapcar #'sh-quote groups))))
+             (when groups `("-S" ,(join-str "," (mapcar #'sh-quote
+                                                        groups))))
              (when shell `("-s" ,(sh-quote shell)))
              (when uid `("-u" ,(sh-quote uid)))
              (sh-quote (resource-id user)))))

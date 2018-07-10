@@ -29,7 +29,7 @@
 
 ;;  User
 
-(define-resource-class user ()
+(define-resource-class user (resource-container)
   ()
   ((probe-user-in-/etc/passwd :properties (:ensure :login :uid :gid :realname
                                                    :home :shell))

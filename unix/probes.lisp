@@ -45,9 +45,10 @@
         (when (etypecase id
                 (string (string= id login))
                 (integer (= id uid)))
-          (setq ensure nil
-                home (resource 'directory home)
-                shell (resource 'file shell))
+          (with-parent-resource *host*
+            (setq ensure nil
+                  home (resource 'directory home)
+                  shell (resource 'file shell)))
           (return (values* #1#))))
       (properties* (ensure . #1#)))))
 
@@ -62,14 +63,16 @@
              (user-group nil))
         (with-group<5> (name passwd gid members)
             (grep user-login "/etc/group")
-          (cond ((= user-gid gid)
-                 (setq user-group (resource 'group name)))
-                ((find user-login members :test #'string=)
-                 (push (resource 'group name) groups))))
-        (setq groups (sort groups #'string< :key #'resource-id)
-              groups (if user-group
-                         (cons user-group groups)
-                         groups))))
+          (when name
+            (with-parent-resource *host*
+              (cond ((= user-gid gid)
+                     (setq user-group (resource 'group name)))
+                    ((find user-login members :test #'string=)
+                     (push (resource 'group name) groups))))
+            (setq groups (sort groups #'string< :key #'resource-id)
+                  groups (if user-group
+                             (cons user-group groups)
+                             groups))))))
     (properties* groups)))
 
 ;;  VNode (filesystem node)
