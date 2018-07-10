@@ -163,7 +163,7 @@
 
 ;;  Sync
 
-(defun sync-op (host res op op-keys op-plist os)
+(defun sync-check (host res op op-keys op-plist os)
   (let ((failed))
     (dolist (property op-keys)
       (let ((specified (get-property property op-plist)))

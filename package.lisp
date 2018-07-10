@@ -78,6 +78,7 @@
    #:resource-type
    #:specified-properties
    #:specified-property
+   #:sync
    ;;  Resource container
    #:*parent-resource*
    #:clear-resources

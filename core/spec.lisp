@@ -154,6 +154,6 @@ Second value lists properties in line with spec. Format is
        (let* ((item (pop diff))
               (key (first item)))
          (when (keywordp key)
-           (push (second item) plist)
-           (push key plist))))
+           (push key plist)
+           (push (second item) plist))))
     (nreverse plist)))
