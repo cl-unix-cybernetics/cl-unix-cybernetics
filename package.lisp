@@ -153,6 +153,6 @@
 
 (defpackage :adams-user
   (:use :adams :cl :cl-debug :re)
-  (:shadow #:directory))
+  (:shadowing-import-from :adams #:directory))
 
 (setf (symbol-function 'adams::directory) #'cl:directory)
