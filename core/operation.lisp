@@ -163,7 +163,7 @@
   (if *print-escape*
       (call-next-method)
       (with-slots (operation resource diff host os) c
-	(format stream "~A failed for (resource '~A ~S) on (host ~S) ~A.~%Conflicting values :~%~{ ~A~%  expected ~S~%  probed   ~S~%~}"
+	(format stream "~A failed for (resource '~A ~S) on (host ~S) ~A.~%Conflicting values :~%~{~{~A~%  expected ~S~%  probed   ~S~%~}~}"
 		(operation-name operation)
                 (string-downcase (class-name (class-of resource)))
                 (resource-id resource)
