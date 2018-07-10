@@ -123,7 +123,7 @@ Error: ~S"
 (defmethod shell-log ((shell shell) (fmt string) &rest args)
   (let ((log (shell-log-stream shell)))
     (when log
-      (format log "~D" (shell-pid shell))
+      (format log "~&~D" (shell-pid shell))
       (apply #'format log fmt args)
       (force-output log))))
 
@@ -154,14 +154,15 @@ Error: ~S"
 	  (shell-log shell "| ~A~%" line))
 	(dolist (line err)
 	  (shell-log shell "# ~A~&" line))
-	(shell-log shell   " ⇒ ~D~%" status))
+        (unless (= 0 status)
+          (shell-log shell   " ⇒ ~D~%" status)))
       (values status out err))))
 
 ;;  Run command
 
 (defmethod shell-run-command ((command string) (shell shell))
   (when (debug-p :shell)
-    (format t "~D╭ $ ~A~%" (shell-pid shell) command))
+    (format t "~&~D╭ $ ~A~%" (shell-pid shell) command))
   (shell-in command shell)
   (shell-status shell))
 

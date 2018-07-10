@@ -67,14 +67,14 @@
 	(sb-ext:process-kill process sb-unix:sigterm)
 	(sb-ext:process-close process)))))
 
-(defmethod shell-in :after (data (shell sb-shell))
-  (when (debug-p :sb-shell)
-    (debug-out "~A" data))
-  (force-output (sb-ext:process-input (shell-process shell))))
-
 (defmethod shell-in ((data string)
 		     (shell sb-shell))
-  (write-string data (sb-ext:process-input (shell-process shell))))
+  (let ((in (sb-ext:process-input (shell-process shell))))
+    (write-string data in)
+    (finish-output in)
+    (when (debug-p :sb-shell)
+      (debug-out "~A" data))
+    shell))
 
 (defmethod shell-out/line ((shell sb-shell))
   (let ((out (read-line (sb-ext:process-output (shell-process shell)) nil nil)))
