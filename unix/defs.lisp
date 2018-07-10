@@ -85,9 +85,12 @@
            (push `(,(sym 'probe-file-cksum- algorithm)
                     :properties (,algorithm))
                  algorithms))
-         (nreverse algorithms))))
+         (nreverse algorithms)))
+  ((op-file-ensure :properties (:ensure)))
+  ((:op-properties (:ensure :mode :uid :gid :owner :group))))
 
 (defgeneric probe-file-content (resource os))
+(defgeneric op-file-ensure (resource os &key ensure))
 
 ;;  Directory
 

@@ -82,4 +82,26 @@
 
 (defmethod op-chmod ((res vnode) (os os-unix) &key mode
                                                 &allow-other-keys)
-  (run "chmod " (octal (mode-permissions mode)) " " (sh-quote (resource-id res))))
+  (run "chmod " (octal (mode-permissions mode)) " "
+       (sh-quote (resource-id res))))
+
+;;  File
+
+(defmethod op-file-ensure ((res file) (os os-unix) &key ensure)
+  (let* ((id (resource-id res))
+         (sh-id (sh-quote id)))
+    (ecase ensure
+      ((:absent) (run "rm " sh-id))
+      ((:present) (run "touch " sh-id))
+      ((nil)))))
+
+;;  Directory
+
+(defmethod op-directory-ensure ((res directory) (os os-unix)
+                                &key ensure)
+  (let* ((id (resource-id res))
+         (sh-id (sh-quote id)))
+    (ecase ensure
+      ((:absent) (run "rmdir " sh-id))
+      ((:present) (run "mkdir " sh-id))
+      ((nil)))))
