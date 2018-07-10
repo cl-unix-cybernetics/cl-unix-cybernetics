@@ -129,9 +129,10 @@
              ((eq quote c) (setq quote nil))
              ((and (null quote) (or (eq #\" c) (eq #\' c))) (setq quote c))
              ((and (null quote) (sh-word-delimiter-p c)) (return))
-             (:otherwise (write-char c out)))))
+             (:otherwise (write-char c out))))
+         (incf i))
       (when (or quote backslash)
         (error "Unmatched quote")))))
 
 (define-syntax sh-var (var (#'parse-sh-var-value value))
-    #~|^\s*(\w*)=(.*)|)
+    #~|^\s*(\w+)=(.*)|)
