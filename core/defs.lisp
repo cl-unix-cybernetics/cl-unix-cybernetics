@@ -55,6 +55,7 @@
 	       :initform (error "Operation without properties.")
 	       :reader operation-properties)
    (after :initarg :after
+          :initform nil
           :reader operations-before)))
 
 (defgeneric operation-generic-function (op))
