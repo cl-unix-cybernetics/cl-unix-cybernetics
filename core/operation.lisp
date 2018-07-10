@@ -92,7 +92,7 @@
                   :property property
                   :host (current-host)
                   :os os))
-         (push op operations)))
+         (pushnew (the operation op) operations)))
     (nreverse operations)))
 
 (defgeneric resource-op-properties (resource))
