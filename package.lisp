@@ -139,6 +139,7 @@
    #:parse-stat<1>
    #:passwd<5>
    #:process
+   #:ssh-authorized-key
    #:stat
    #:stat<1>
    #:+timestamp-offset+

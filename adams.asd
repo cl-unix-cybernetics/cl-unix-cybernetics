@@ -68,5 +68,6 @@
 	     (:file "operations" :depends-on ("commands" "defs"))
 	     (:file "probes"  :depends-on ("commands" "defs"
                                            "stat" "syntaxes"))
+             (:file "ssh" :depends-on ("defs"))
 	     (:file "stat")
 	     (:file "syntaxes")))))
