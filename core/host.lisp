@@ -45,17 +45,20 @@
   (specified-property host :user))
 
 (defun host-connect (host)
-  (let ((id (resource-id host)))
-    (cond
-      ((string-equal (local-hostname) id)
-       (setf (host-shell host) (make-shell "/bin/sh")))
-      (:otherwise
-       (let ((user (host-user host)))
-         (setf (host-shell host)
-               (apply #'make-shell
-                      `("/usr/bin/ssh"
-                        ,@(when user `("-l" ,user))
-                        ,id "/bin/sh"))))))))
+  (let* ((id (resource-id host))
+         (locale (specified-property host :locale))
+         (shell (cond ((string-equal (local-hostname) id)
+                       (make-shell "/bin/sh"))
+                      (:otherwise
+                       (let ((user (host-user host)))
+                         (apply #'make-shell
+                                `("/usr/bin/ssh"
+                                  ,@(when user `("-l" ,user))
+                                  ,id "/bin/sh")))))))
+    (when locale
+      (shell-run shell "export LANG=" locale))
+    (setf (host-shell host) shell)
+    shell))
 
 (defun current-host ()
   (or (when (boundp '*host*)
@@ -100,15 +103,8 @@
            (return)))
     (apply #'shell-run shell command)))
 
-(defmacro with-connected-host ((var hostname) &body body)
-  (let ((g!host (gensym "HOST-")))
-    `(let ((,g!host (make-instance 'host :id ,hostname)))
-       (unwind-protect (let ((,var ,g!host)) ,@body)
-         (unless (eq (localhost) ,g!host)
-           (host-disconnect ,g!host))))))
-
 (defmethod host-run ((hostname string) &rest command)
-  (with-connected-host (host hostname)
+  (let ((host (host hostname)))
     (apply #'host-run host command)))
 
 ;;  With host

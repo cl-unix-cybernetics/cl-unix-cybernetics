@@ -189,11 +189,14 @@
   ((shell :initarg :shell
 	  :type shell))
   ((probe-os-using-uname :properties (:os))
-   (probe-hostname :properties (:hostname))
+   (probe-host-locale :properties (:locale))
+   (probe-host-packages :properties (:packages))
    (probe-boot-time :properties (:boot-time))
    (probe-host-user :properties (:user))
-   (probe-host-packages :properties (:packages)))
-  ((op-hostname :properties (:hostname))))
+   (probe-hostname :properties (:hostname)))
+  ((op-host-locale :properties (:locale))
+   (op-host-packages :properties (:packages))
+   (op-hostname :properties (:hostname))))
 
 (defgeneric probe-os-using-uname (host os))
 (defgeneric probe-hostname (host os))
