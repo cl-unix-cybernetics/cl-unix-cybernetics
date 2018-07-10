@@ -96,9 +96,12 @@
 
 (define-resource-class directory (vnode)
   ()
-  ((probe-directory-content :properties (:content))))
+  ((probe-directory-content :properties (:content)))
+  ((op-directory-ensure :properties (:ensure)))
+  ((:op-properties (:ensure :mode :uid :gid :owner :group))))
 
 (defgeneric probe-directory-content (resource os))
+(defgeneric op-directory-ensure (resource os &key ensure))
 
 ;;  Mounted filesystems
 
