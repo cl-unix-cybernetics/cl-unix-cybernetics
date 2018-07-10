@@ -120,6 +120,9 @@
       (make-instance 'mode :fixnum (parse-integer s :radix 8))
       (parse-mode-string s)))
 
+(defmethod mode ((x null))
+  (make-instance 'mode :fixnum 0))
+
 (defmethod print-object ((mode mode) stream)
   (prin1 `(mode ,(if (mode-type mode)
                      (mode-string mode)
