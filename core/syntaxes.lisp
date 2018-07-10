@@ -84,9 +84,16 @@
           seconds))
       (error "Invalid uptime ?")))
 
+(defun parse-comma-number (str)
+  (declare (type string str))
+  (dotimes (i (the fixnum (length str)))
+    (when (char= #\, (char str i))
+      (setf (char str i) #\.)))
+  (parse-number str))
+
 (define-syntax uptime<1> ((#'chronicity:parse time)
                           (#'parse-uptime uptime)
                           (#'parse-integer users)
-                          (#'parse-number load1 load5 load15))
+                          (#'parse-comma-number load1 load5 load15))
   #~|^\s*(\S+)\s+up\s+(.+),\s+([0-9]+)\s+users?,\s+load averages?: ([0-9.,]+), ([0-9.,]+), ([0-9.,]+)$|
   "Syntax of the uptime command output. See uptime(1).")
