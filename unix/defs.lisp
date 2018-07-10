@@ -134,4 +134,4 @@
 
 (define-resource-class pkg)
 
-(defgeneric probe-installed-packages% (host os))
+(defgeneric probe-installed-packages (host os))
