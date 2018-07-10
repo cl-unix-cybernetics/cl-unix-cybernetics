@@ -50,14 +50,18 @@
 
 (define-resource-class vnode ()
   ()
-  ((probe-vnode-using-ls :properties (:mode :links :owner :group :size :mtime))
-   (probe-vnode-using-stat :properties (:dev :ino :mode :links :uid :gid :rdev
-                                        :size :atime :mtime :ctime :blksize
-                                        :blocks :flags)))
-  ((op-chown :properties (:uid :gid :owner :group))))
+  ((probe-vnode-using-ls :properties (:ensure :group :links :mode :mtime
+                                              :owner :size))
+   (probe-vnode-using-stat :properties (:atime :blocks :blksize :ctime
+                                               :dev :ensure :flags :gid
+                                               :ino :links :mode :mtime
+                                               :rdev :size :uid)))
+  ((op-chmod :properties (:mode))
+   (op-chown :properties (:uid :gid :owner :group))))
 
 (defgeneric probe-vnode-using-ls (resource os))
 (defgeneric probe-vnode-using-stat (resource os))
+(defgeneric op-chmod (resource os &key mode &allow-other-keys))
 (defgeneric op-chown (resource os &key uid gid owner group &allow-other-keys))
 
 ;;  File
