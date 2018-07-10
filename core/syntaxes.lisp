@@ -59,11 +59,12 @@
 	   ,@(or body `((values ,@values)))))
        (defmacro ,with-name ((,@vars) lines &body with-body)
 	 ,@(when doc (list doc))
-         `(dolist (line ,lines)
-            (declare (type string line))
-            (multiple-value-bind (,,@vars) (,',parse-name line)
-              (declare (ignorable ,,@vars))
-              ,@with-body))))))
+         `(block nil
+            (dolist (line ,lines)
+              (declare (type string line))
+              (multiple-value-bind (,,@vars) (,',parse-name line)
+                (declare (ignorable ,,@vars))
+                ,@with-body)))))))
 
 ;;  Host
 
