@@ -196,7 +196,7 @@
                 (op-keys (operation-properties op))
                 (op-plist (get-properties op-keys plist))
                 (op-fun (operation-generic-function op)))
-           (apply op-fun res os op-plist)
+           (apply (the function op-fun) res os op-plist)
            (clear-probed res op-keys)
            (sync-check host res op op-keys op-plist os))))))
 
