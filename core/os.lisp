@@ -44,7 +44,6 @@
   ((distrib :initarg :distrib
             :accessor os-distrib
             :type symbol)))
-
 (defclass os-linux-debian (os-linux) ())
 
 ;;  BSD
