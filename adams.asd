@@ -62,6 +62,7 @@
 	    ((:file "commands")
 	     (:file "debian" :depends-on ("commands" "defs" "syntaxes"))
 	     (:file "defs")
+	     (:file "linux" :depends-on ("commands" "defs"))
 	     (:file "openbsd" :depends-on ("commands" "defs"))
 	     (:file "freebsd" :depends-on ("commands" "defs"))
 	     (:file "operations" :depends-on ("commands" "defs"))
