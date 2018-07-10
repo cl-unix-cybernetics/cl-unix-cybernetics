@@ -22,7 +22,8 @@
 
 (define-resource-class debian-pkg (pkg)
   ()
-  ((probe-debian-pkg :properties (:versions))))
+  ((probe-debian-pkg :properties (:arch :ensure :release :tags
+                                        :versions))))
 
 (define-syntax apt<8>-list (name release version arch tags)
   #~|([^/\s]+)(?:/([^\s]*))?\s+([^\s]+)\s+([^\s]+)(?:\s+\[([^\]]+)\])?|
@@ -34,9 +35,8 @@
         (ensure :absent))
     (multiple-value-bind #1=(release version arch tags)
         (with-apt<8>-list (name . #1#)
-            (run "apt list | grep " id)
-          (declare (type string name))
-          (when (string= id name)
+            (run "apt list " (sh-quote id))
+          (when (and name (string= id (the string name)))
             (when (find "installed" (the list tags))
               (setf ensure :installed))
             (return (values* #1#))))
@@ -47,23 +47,40 @@
     (let ((packages))
       (with-apt<8>-list (name release version arch tags)
           (run "apt list | grep installed")
-        (let ((pkg (resource 'debian-pkg name)))
+        (let ((pkg (resource 'debian-pkg name))
+              (ensure (if (find "installed" (the list tags))
+                          :installed
+                          :absent)))
           (add-probed-properties pkg (properties* name release version
-                                                  arch tags))
+                                                  arch tags ensure))
           (push pkg packages)))
       (list :packages (nreverse packages)))))
 
-#+nil
-(clear-resources)
+(defmethod op-host-packages ((host host) (os os-linux-debian) &key packages)
+  (with-host host
+    (let ((install-packages
+           (with-output-to-string (out)
+             (dolist (id packages)
+               (let ((pkg (resource 'debian-pkg id :ensure :installed)))
+                 (unless (eq :installed (get-probed pkg :ensure))
+                   (write-str out " " (sh-quote id))))))))
+      (unless (string= "" install-packages)
+        (run "apt-get update")
+        (run "apt-get install" install-packages)))))
 
-#+nil
-(describe-probed (resource 'openbsd-pkg "emacs"))
+(defmethod probe-host-locale ((host host) (os os-linux-debian))
+  (with-host host
+    (let ((lang (with-sh-var (var value) (run "cat /etc/default/locale")
+                  (when (and var value (string= "LANG" (the string var)))
+                    (return value)))))
+      (list :locale lang))))
 
-#+nil
-(probe-installed-packages)
+(defmethod op-host-locale ((host host) (os os-linux-debian) &key locale)
+  (let ((sh-locale (sh-quote locale)))
+    (run "echo LANG=" sh-locale " > /etc/default/locale")
+    (run "export LANG=" sh-locale)))
 
-#+nil
-(map nil #'describe-probed (probe-installed-packages))
-
-#+nil
-(run "pkg_info -q | grep emacs-")
+(defmethod op-hostname ((host host) (os os-linux-debian) &key hostname)
+  (let ((sh-hostname (sh-quote hostname)))
+    (run "echo " sh-hostname " > /etc/hostname")
+    (run "hostname " sh-hostname)))
