@@ -188,7 +188,7 @@
            (host (current-host))
            (os (host-os host))
            (ops (list-operations res plist os))
-           (sorted-ops (sort-operations ops)))
+           (sorted-ops (sort-operations res ops)))
       (loop
          (when (endp sorted-ops)
            (return))
@@ -198,17 +198,7 @@
                 (op-fun (operation-generic-function op)))
            (apply op-fun res os op-plist)
            (clear-probed res op-keys)
-           (sync-op host res op op-keys op-plist os))))))
-
-(defmethod sync ((res resource-container))
-  (call-next-method)
-  (with-parent-resource res
-    (let ((child-resources (child-resources res)))
-      (loop
-         (when (endp child-resources)
-           (return))
-         (let ((child (pop child-resources)))
-           (sync child))))))
+           (sync-check host res op op-keys op-plist os))))))
 
 (defmethod sync ((host host))
   (with-host host

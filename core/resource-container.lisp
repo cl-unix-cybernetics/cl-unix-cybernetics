@@ -46,19 +46,27 @@
 		      parent)
 	child))
 
-(defmacro do-resources ((var) container &body body)
+(defmacro do-resources% ((var) container &body body)
   (let ((x (gensym)))
     `(maphash (lambda (,x ,var)
                 (declare (ignore ,x))
                 ,@body)
               (resource-registry ,container))))
 
-(defmethod child-resources ((res resource-container))
+(defmethod sorted-resources ((res resource-container))
   (let ((resources))
-    (do-resources (child) res
+    (do-resources% (child) res
       (push child resources))
     (sort resources #'resource-before-p)))
 
+(defmacro do-resources ((var) container &body body)
+  (let ((resources (gensym "RESOURCES-")))
+    `(let ((,resources (sorted-resources ,container)))
+       (loop (when (endp ,resources) (return))
+          (let ((,var (pop ,resources)))
+            (declare (type resource ,var))
+            ,@body)))))
+ 
 ;;  Resource container
 
 (defmethod print-object ((rc resource-container) stream)
@@ -78,3 +86,14 @@
 
 (defmethod resource-before-p ((r1 resource) (r2 resource))
   nil)
+
+;;  Sync
+
+(defmethod sync :after ((res resource-container))
+  (with-parent-resource res
+    (let ((sorted-resources (sorted-resources res)))
+      (loop
+         (when (endp sorted-resources)
+           (return))
+         (let ((child (pop sorted-resources)))
+           (sync child))))))

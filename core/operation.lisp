@@ -95,14 +95,52 @@
          (push op operations)))
     (nreverse operations)))
 
-(defun sort-operations (operations)
+(defgeneric resource-op-properties (resource))
+(defgeneric op-property-before-p (resource p1 p2))
+(defgeneric operation-before-p (resource op1 op2))
+(defgeneric sort-operations (resource operations))
+
+(trace resource-op-properties
+       op-properties
+       op-property-before-p
+       operation-before-p
+       sort-operations)
+
+(defmethod resource-op-properties ((res resource))
+  (op-properties (class-of res)))
+
+(defmethod op-property-before-p ((res resource) (p1 symbol) (p2 symbol))
+  (dolist (prop (resource-op-properties res))
+    (cond ((endp prop) (return nil))
+          ((eq p1 (first prop)) (return t))
+          ((eq p2 (first prop)) (return nil)))
+    (pop prop)))
+
+(defmethod operation-before-p ((res resource) (op1 operation)
+                               (op2 operation))
+  (declare (type operation op1 op2))
+  (let ((op1-properties (operation-properties op1)))
+    (loop (when (endp op1-properties) (return))
+       (let ((p1 (pop op1-properties))
+             (op2-properties (operation-properties op2))
+             (before-p t))
+         (loop (when (endp op2-properties) (return))
+            (let ((p2 (pop op2-properties)))
+              (unless (op-property-before-p res p1 p2)
+                (setf before-p nil)
+                (return))))
+         (when before-p
+           (return-from operation-before-p t)))))
+  (find op1 (the list (operations-before op2))))
+
+(defmethod sort-operations ((res resource) (operations list))
   (sort operations (lambda (op1 op2)
-                     (find op1 (operations-before op2)))))
+                     (operation-before-p res op1 op2))))
 
 (defmethod operate ((res resource) (plist list))
   (let* ((os (host-os (current-host)))
          (operations (list-operations res plist os))
-         (sorted-ops (sort-operations operations))
+         (sorted-ops (sort-operations res operations))
          (results))
     (loop
        (let* ((op (pop sorted-ops))

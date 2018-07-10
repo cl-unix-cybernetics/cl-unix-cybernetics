@@ -117,31 +117,30 @@ Second value lists properties in line with spec. Format is
 
 (defmethod resource-diff ((res resource))
   (let ((specified-properties (specified-properties res))
-        ok diff)
+        diff)
     (loop
        (when (endp specified-properties)
          (return))
-       (let* ((sp (pop specified-properties))
-              (property (first sp))
-              (specified (second sp))
+       (let* ((property (pop specified-properties))
+              (specified (pop specified-properties))
               (probed (get-probed res property))
               (desc (describe-probed-property-value res property probed)))
-         (if (match-specified-value res property specified desc)
-             (push sp ok)
-             (push `(,property ,specified ,desc) diff))))
-    diff))
+         (unless (match-specified-value res property specified desc)
+           (push `(,property ,specified ,desc) diff))))
+    (nreverse diff)))
 
 #+nil
 (resource-diff (resource 'directory "/" :owner "root" :uid 0))
 
 (defmethod resource-diff ((res resource-container))
-  (let ((diffs))
-    (do-resources (r) res
-      (let ((d (resource-diff r)))
-        (when d
-          (push (cons r d) diffs))))
-    (append (call-next-method res)
-            (sort diffs #'resource-before-p :key #'first))))
+  (with-parent-resource res
+    (let ((diffs))
+      (do-resources (r) res
+        (let ((d (resource-diff r)))
+          (when d
+            (push (cons r d) diffs))))
+      (append (call-next-method res)
+              (sort diffs #'resource-before-p :key #'first)))))
 
 (defmethod resource-diff ((host host))
   (with-host host

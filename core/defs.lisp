@@ -76,7 +76,11 @@
    (probes :reader probes-of
 	   :type list)
    (operations :reader operations-of
-               :type list))
+               :type list)
+   (op-properties :initarg :op-properties
+                  :initform ()
+                  :reader op-properties
+                  :type list))
   (:default-initargs :direct-superclasses (list *the-resource-class*)))
 
 (defmethod closer-mop:validate-superclass ((c resource-class)
