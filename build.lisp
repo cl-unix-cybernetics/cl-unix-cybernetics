@@ -43,7 +43,7 @@
   (list `(require ,(string-upcase (asdf:component-name req)))))
 
 (defmethod collect-sources ((x asdf:cl-source-file))
-  (list `(load (compile-file ,(asdf:component-pathname x)))))
+  (list `(compile-lisp ,(asdf:component-pathname x))))
 
 (defmethod collect-sources ((x asdf:file-component))
   (list `(quote ,(asdf:component-pathname x))))
@@ -57,6 +57,73 @@
 
 #+nil (collect-sources :adams)
 
+(defvar *system-directory*
+  (make-hash-table))
+
+(defun system-directory (system)
+  (or #1=(gethash system *system-directory*)
+      (let* ((sys (typecase system (asdf:system system)
+                            (t (asdf:find-system system))))
+             (asd (asdf:system-source-file sys)))
+        (setf #1#
+              (make-pathname :name nil :type nil :defaults asd)))))
+
+(defun system-file (system &rest parts)
+  (let ((str (apply #'concatenate 'string parts)))
+    (merge-pathnames str (system-directory system))))
+
+(defun namestring* (x)
+  (etypecase x
+    (null "")
+    (pathname (namestring x))
+    (string x)))
+
+(defparameter *dir* (namestring* (system-file :adams "")))
+
+(defun compile-lisp (path)
+  (let* ((adams-dir *dir*)
+         (dir (pathname-directory path))
+         (name (pathname-name path))
+         (fasl (with-output-to-string (out)
+                 (write-string adams-dir out)
+                 (write-string "build/" out)
+                 (dolist (d (rest dir))
+                   (write-string d out)
+                   (write-char #\- out))
+                 (write-string name out)
+                 (write-string ".fasl" out))))
+      (print fasl)
+      (unless (and (probe-file fasl)
+                   (<= (file-write-date path)
+                       (file-write-date fasl)))
+        (print path)
+        (ensure-directories-exist fasl)
+        (compile-file path :output-file fasl))
+      (load fasl)))
+
+(defun write-system-build-file (system sbf)
+  (format t "~&~A~%" sbf) (force-output)
+  (with-open-file (out sbf :direction :output
+                       :element-type 'character
+                       :if-exists :supersede
+                       :if-does-not-exist :create
+                       :external-format :utf-8)
+    (declare (type stream out))
+    (format out "~&;;  ~A" (asdf:component-name system))
+    (dolist (src (collect-sources system))
+      (print src out))))
+
+(defun system-build-file (system)
+  (let* ((adams-dir *dir*)
+         (asd (asdf:system-source-file system))
+         (name (substitute #\- #\/ (asdf:component-name system)))
+         (sbf (concatenate 'string adams-dir "build/" name ".lisp")))
+    (unless (and (probe-file sbf)
+                 (<= (file-write-date asd)
+                     (file-write-date sbf)))
+      (write-system-build-file system sbf))
+    sbf))
+
 (defun system-and-dependencies (name)
   (let (dependencies)
     (labels ((dfs (name)
@@ -68,18 +135,7 @@
       (dfs name)
       (nreverse dependencies))))
 
-(defun system-directory (system)
-  (unless (typep system 'asdf:system)
-    (setq system (asdf:find-system system)))
-  (make-pathname :name nil
-                 :type nil
-                 :defaults (asdf:system-source-file system)))
-
-(defun system-file (system &rest parts)
-  (let ((str (apply #'concatenate 'string parts)))
-    (merge-pathnames str (system-directory system))))
-
-(defun build/systems.lisp (system)
+(defun write-build-systems-file (system)
   (unless (typep system 'asdf:system)
     (setq system (asdf:find-system system)))
   (let* ((path (system-file system "build/systems.lisp")))
@@ -92,12 +148,17 @@
                          :if-does-not-exist :create)
       (declare (type stream out))
       (dolist (sys (system-and-dependencies system))
-        (let ((sys-name (asdf:component-name sys)))
+        (let* ((build-file (system-build-file sys))
+               (load-form `(load ,build-file)))
           (format t "~& ~A~%" sys) (force-output)
-          (format out "~&;;  ~A" sys-name))
-        (dolist (src (collect-sources sys))
-          (print src out))))))
+          (print load-form out)))
+      (fresh-line out))))
 
-(build/systems.lisp :adams)
-(load (system-file :adams "build/systems.lisp"))
-(load (system-file :adams "toplevel.lisp"))
+(write-build-systems-file :adams)
+
+(defun load* (path)
+  (format t "~&Loading ~S" path)
+  (load path))
+
+(load* (system-file :adams "build/systems.lisp"))
+(load* (system-file :adams "toplevel.lisp"))
