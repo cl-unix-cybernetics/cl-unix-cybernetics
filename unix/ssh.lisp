@@ -74,3 +74,17 @@
       (run "mv " sh-ak-tmp " " sh-ak))
     (when (position ensure '(:present nil))
       (run "echo " (sh-quote type " " pubkey " " name) " >> " sh-ak))))
+
+(defmethod resource-additional-specs ((res ssh-authorized-key)
+                                      (os os-unix))
+  (let* ((user *parent-resource*)
+         (home (resource-id (get-specified user :home)))
+         (ssh-dir (str home "/.ssh"))
+         (ak (str dot-ssh "/authorized_keys")))
+    (with-parent-resource *host*
+      (resource 'directory ssh-dir
+                :ensure :present
+                :mode #o700)
+      (resource 'file ak
+                :ensure :present
+                :mode #o600))))

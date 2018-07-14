@@ -163,6 +163,8 @@
 #+nil
 (describe-probed (resource 'mount "/rd") t)
 
+(defmethod resource-additional-specs ((res resource) (os t))
+  )
 
 ;;  Sync
 

@@ -44,7 +44,8 @@
 
 (defmethod parse-next-specification ((res resource-container) spec)
   (cond ((typep (first spec) 'resource)
-	 (add-resource res (pop spec))
+         (let ((child (pop spec)))
+           (add-resource res child))
 	 spec)
 	(:otherwise (call-next-method))))
 
@@ -60,6 +61,14 @@
          (error "Invalid specification : ~S" spec))
        (setq spec next-spec)))
   res)
+
+(defmethod parse-specification ((res resource-container) (spec t))
+  (with-parent-resource res
+    (call-next-method)
+    (do-resources (child) res
+      (resource-additional-specs child (host-os (current-host))))))
+
+(trace parse-specification)
 
 #+nil
 (parse-specification *localhost*
@@ -77,11 +86,11 @@
     (nreverse r)))
 
 (defun resource (type id &rest spec)
-  (let ((r (or #1=(get-resource type id)
-	       (setf #1# (make-resource type id)))))
+  (let ((res (or #1=(get-resource type id)
+                 (setf #1# (make-resource type id)))))
     (when spec
-      (parse-specification r spec))
-    r))
+      (parse-specification res spec))
+    res))
 
 (defmacro specify (&body specification)
   `(macrolet ,(mapcar (lambda (c)
