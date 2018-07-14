@@ -126,7 +126,10 @@
 
 (declaim (ftype (function (resource) string) resource-id))
 
+(defgeneric resource-additional-specs (resource os))
 (defgeneric resource-probes-properties (resource))
+(defgeneric resource-operations-properties (resource))
+(defgeneric sync (resource))
 
 (setq *the-resource-class* (find-class 'resource))
 
