@@ -100,12 +100,6 @@
 (defgeneric operation-before-p (resource op1 op2))
 (defgeneric sort-operations (resource operations))
 
-(trace resource-op-properties
-       op-properties
-       op-property-before-p
-       operation-before-p
-       sort-operations)
-
 (defmethod resource-op-properties ((res resource))
   (op-properties (class-of res)))
 

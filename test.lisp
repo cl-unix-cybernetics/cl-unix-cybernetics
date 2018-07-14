@@ -24,9 +24,6 @@
 
 ;; TEST
 
-#+nil
-(untrace shell-status)
-
 (setf (debug-p :shell) t)
 
 (with-host "root@dc"
