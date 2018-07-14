@@ -45,6 +45,7 @@
   (apply #'make-instance type :id id initargs))
 
 (defun resource-type (resource)
+  (declare (type resource resource))
   (class-name (class-of resource)))
 
 (defmethod resource-probes-properties ((res resource))
@@ -58,6 +59,7 @@
 (resource-probes-properties (resource 'file "/"))
 
 (defun probe-all-properties (res)
+  (declare (type resource res))
   (dolist (p (resource-probes-properties res))
     (get-probed res p))
   (probed-properties res))
@@ -155,6 +157,7 @@
       (pprint-plist (cdddr form) out))))
 
 (defun describe-probed (resource &optional (output t))
+  (declare (type resource resource))
   (describe-probed% resource output))
 
 #+nil
