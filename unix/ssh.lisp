@@ -37,8 +37,8 @@
 
 (defmethod probe-ssh-authorized-key ((res ssh-authorized-key)
                                      (os os-unix))
-  (let* ((spec-type (the string (specified-property res :type)))
-         (spec-pubkey (the string (specified-property res :pubkey)))
+  (let* ((spec-type (the string (get-specified res :type)))
+         (spec-pubkey (the string (get-specified res :pubkey)))
          (user *parent-resource*)
          (home (resource-id (get-probed user :home)))
          (path (str home "/.ssh/authorized_keys"))
@@ -65,14 +65,9 @@
          (ak (str dot-ssh "/authorized_keys"))
          (sh-ak (sh-quote ak))
          (sh-ak-tmp (sh-quote (str ak ".tmp"))))
-    (setf type (specified-property res :type)
-          pubkey (specified-property res :pubkey)
-          name (specified-property res :name))
-    (with-parent-resource *host*
-      (sync (resource 'directory dot-ssh :ensure :present
-                      :mode #o700))
-      (sync (resource 'file ak :ensure :present :mode #o600)))
-    (format t "~&ensure ~S~%" ensure)
+    (setf type (get-specified res :type)
+          pubkey (get-specified res :pubkey)
+          name (get-specified res :name))
     (force-output)
     (when (position ensure '(:absent nil))
       (run "grep -v " (sh-quote pubkey) " " sh-ak " > " sh-ak-tmp)

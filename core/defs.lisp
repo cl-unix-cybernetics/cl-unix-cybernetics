@@ -163,8 +163,8 @@
 
 ;;  Specifying resources
 
-(defgeneric specified-property (resource property))
-(defgeneric (setf specified-property) (value resource property))
+(defgeneric get-specified (resource property))
+(defgeneric (setf get-specified) (value resource property))
 
 (defvar *specification*)
 (defgeneric parse-next-specification (resource spec))

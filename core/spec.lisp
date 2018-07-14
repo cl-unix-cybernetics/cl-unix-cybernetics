@@ -20,16 +20,16 @@
 
 ;;  Specified properties, what all specifications amount to.
 
-(defmethod specified-property ((res resource)
-			       (property symbol))
+(defmethod get-specified ((res resource)
+                          (property symbol))
   (let ((value (get-property property (specified-properties res))))
     (if (eq +undefined+ value)
-        (values nil value)
+        (values nil +undefined+)
         value)))
 
-(defmethod (setf specified-property) (value
-				      (res resource)
-				      (property symbol))
+(defmethod (setf get-specified) (value
+                                 (res resource)
+                                 (property symbol))
   (let ((p (specified-properties res)))
     (setf (get-property property p) value)
     (setf (specified-properties res) p)))
@@ -39,7 +39,7 @@
 (defmethod parse-next-specification ((res resource) spec)
   (let ((property (pop spec))
 	(value (pop spec)))
-    (setf (specified-property res property) value)
+    (setf (get-specified res property) value)
     spec))
 
 (defmethod parse-next-specification ((res resource-container) spec)

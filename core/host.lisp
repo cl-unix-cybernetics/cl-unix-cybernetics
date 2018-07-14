@@ -42,11 +42,11 @@
   (setf *host* (localhost)))
 
 (defun host-user (host)
-  (specified-property host :user))
+  (get-specified host :user))
 
 (defun host-connect (host)
   (let* ((id (resource-id host))
-         (locale (specified-property host :locale))
+         (locale (get-specified host :locale))
          (shell (cond ((string-equal (local-hostname) id)
                        (make-shell "/bin/sh"))
                       (:otherwise

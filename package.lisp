@@ -77,7 +77,6 @@
    #:resource
    #:resource-type
    #:specified-properties
-   #:specified-property
    #:sync
    ;;  Resource container
    #:*parent-resource*
@@ -85,6 +84,7 @@
    #:resource-container
    #:with-parent-resource
    ;;  Specification
+   #:get-specified
    #:specify
    #:parse-specification
    #:parse-next-specification
