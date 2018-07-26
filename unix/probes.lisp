@@ -82,7 +82,7 @@
         (ensure :absent))
     (multiple-value-bind #1=(mode links owner group size mtime)
         (with-ls<1>-lT #.(cons 'name '#1#)
-            (ls "-ldT" id)
+            (ls "-ldT" (sh-quote id))
           (when (string= id name)
             (setq mode (mode (mode-permissions mode))
                   owner (resource 'user owner)
@@ -96,7 +96,7 @@
         (ensure :absent))
     (multiple-value-bind #1=(dev ino mode links uid gid rdev size
                                  atime mtime ctime blksize blocks flags)
-        (with-stat<1>-r (name . #1#) (stat "-r" id)
+        (with-stat<1>-r (name . #1#) (stat "-r" (sh-quote id))
           (when (and name (string= id (the string name)))
             (setq mode (mode (mode-permissions mode))
                   ensure :present)

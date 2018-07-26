@@ -35,7 +35,7 @@
         (ensure :absent))
     (multiple-value-bind (mode links owner group size mtime)
         (with-ls<1>-l--full-time (mode links owner group size mtime name)
-            (ls "-ld --full-time" id)
+            (ls "-ld --full-time" (sh-quote id))
           (when (and name (string= id (the string name)))
             (setq mode (mode (mode-permissions mode))
                   owner (resource 'user owner)
