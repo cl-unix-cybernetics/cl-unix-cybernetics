@@ -133,12 +133,17 @@
   (when (search (symbol-name 'debian) version :test #'char-equal)
     'debian))
 
+(defun gentoo-release (release)
+  (when (search (symbol-name 'gentoo) release :test #'char-equal)
+    'gentoo))
+
 (defmethod probe-os-using-uname ((host host) (os t))
   (multiple-value-bind (name hostname release version machine) (uname)
     (declare (ignore hostname))
     (let* ((name (or (linux-name name)
                      name))
-           (distrib (or (debian-version version)))
+           (distrib (or (debian-version version)
+                        (gentoo-release release)))
            (class (flet ((try (&rest parts)
                            (when-let ((s (find-symbol (string-upcase (str 'os- parts))
                                                       *package*)))
