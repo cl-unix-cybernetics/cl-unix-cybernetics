@@ -62,14 +62,6 @@
        (setq spec next-spec)))
   res)
 
-(defmethod parse-specification ((res resource-container) (spec t))
-  (with-parent-resource res
-    (call-next-method)
-    (do-resources (child) res
-      (resource-additional-specs child (host-os (current-host))))))
-
-(trace parse-specification)
-
 #+nil
 (parse-specification *localhost*
                      '(:hostname "arrakis.lowh.net"))

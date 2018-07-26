@@ -83,7 +83,11 @@
 (defmethod resource-before-p ((r1 resource) (r2 resource))
   nil)
 
-;;  Sync
+(defmethod resource-additional-specs ((res resource-container) (os t))
+  (call-next-method)
+  (with-parent-resource res
+    (do-resources (child) res
+      (resource-additional-specs child os))))
 
 (defmethod sync :after ((res resource-container))
   (with-parent-resource res

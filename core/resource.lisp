@@ -207,4 +207,5 @@
 
 (defmethod sync ((host host))
   (with-host host
+    (resource-additional-specs host (host-os host))
     (call-next-method)))

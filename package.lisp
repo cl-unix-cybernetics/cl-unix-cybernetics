@@ -75,6 +75,7 @@
    #:probed-properties
    #:probe-all-properties
    #:resource
+   #:resource-additional-specs
    #:resource-type
    #:specified-properties
    #:sync
