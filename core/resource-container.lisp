@@ -67,8 +67,6 @@
             (declare (type resource ,var))
             ,@body)))))
 
-;;  Resource container
-
 (defmethod print-object ((rc resource-container) stream)
   (print-unreadable-object (rc stream :type t :identity (not *print-pretty*))
     (format stream "~S ~D spec ~D probed ~D resources" (resource-id rc)
@@ -81,8 +79,6 @@
 
 (defun clear-resources (&optional (resource-container *parent-resource*))
   (clear-resources% resource-container))
-
-;;  Sorting resources
 
 (defmethod resource-before-p ((r1 resource) (r2 resource))
   nil)
