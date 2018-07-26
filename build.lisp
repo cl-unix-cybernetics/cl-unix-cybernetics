@@ -177,5 +177,6 @@
   (format t "~&Loading ~S" path)
   (load path))
 
+(load* (system-file :adams "config.lisp"))
 (load* (system-file :adams "build/systems.lisp"))
 (load* (system-file :adams "toplevel.lisp"))
