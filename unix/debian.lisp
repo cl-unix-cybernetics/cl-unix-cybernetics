@@ -65,8 +65,8 @@
                  (unless (eq :installed (get-probed pkg :ensure))
                    (write-str out " " (sh-quote id))))))))
       (unless (string= "" install-packages)
-        (run "apt-get update")
-        (run "apt-get install" install-packages)))))
+        (run "apt-get -qy update")
+        (run "apt-get -qy install" install-packages)))))
 
 (defmethod probe-host-locale ((host host) (os os-linux-debian))
   (with-host host
