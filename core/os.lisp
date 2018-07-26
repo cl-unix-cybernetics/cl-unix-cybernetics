@@ -45,6 +45,7 @@
             :accessor os-distrib
             :type symbol)))
 (defclass os-linux-debian (os-linux) ())
+(defclass os-linux-gentoo (os-linux) ())
 
 ;;  BSD
 
