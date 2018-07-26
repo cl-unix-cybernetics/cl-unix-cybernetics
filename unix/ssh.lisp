@@ -77,14 +77,23 @@
 
 (defmethod resource-additional-specs ((res ssh-authorized-key)
                                       (os os-unix))
+  (format t "~& PARENT RESOURCE ~S~%" *parent-resource*)
+  (format t "~& HOME ~S~%" (get-specified *parent-resource* :home))
+  (force-output)
   (let* ((user *parent-resource*)
-         (home (resource-id (get-specified user :home)))
+         (home (get-specified user :home))
          (ssh-dir (str home "/.ssh"))
-         (ak (str dot-ssh "/authorized_keys")))
+         (ak (str ssh-dir "/authorized_keys"))
+         (owner (resource-id user))
+         (gid (get-probed user :gid)))
     (with-parent-resource *host*
       (resource 'directory ssh-dir
                 :ensure :present
+                :owner owner
+                :gid gid
                 :mode #o700)
       (resource 'file ak
                 :ensure :present
+                :owner owner
+                :gid gid
                 :mode #o600))))
