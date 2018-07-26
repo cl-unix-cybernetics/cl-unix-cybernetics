@@ -1,7 +1,7 @@
 ;;
-;;  adams  -  Remote system administration tools
+;;  adams - system administrator written in Common Lisp
 ;;
-;;  Copyright 2018 Thomas de Grivel <thomas@lowh.net>
+;;  Copyright 2013,2014,2018 Thomas de Grivel <thoxdg@gmail.com>
 ;;
 ;;  Permission to use, copy, modify, and distribute this software for any
 ;;  purpose with or without fee is hereby granted, provided that the above
