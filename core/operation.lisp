@@ -153,14 +153,42 @@
 		resource property (hostname host)
 		(class-name (class-of os))))))
 
+(defun print-list (x stream)
+  (write-char #\( stream)
+  (let ((first t))
+    (dolist (item x)
+      (if first
+          (setq first nil)
+          (write-char #\Space stream))
+      (if (consp item)
+          (print-list item stream)
+          (prin1 item stream))))
+  (write-char #\) stream))
+
+(defun print-diff (stream diff)
+  (dolist (item diff)
+    (destructuring-bind (property expected probed) item
+      (declare (type symbol property)
+               (type list expected probed))
+      (write-str stream property #\Newline
+                 " expected ")
+      (print-list expected stream)
+      (write-str stream #\Newline
+                 " probed   ")
+      (print-list probed stream)
+      (write-str stream #\Newline))))
+
 (defmethod print-object ((c resource-operation-failed) stream)
   (if *print-escape*
       (call-next-method)
-      (with-slots (operation resource diff host os) c
-	(format stream "~A failed for (resource '~A ~S) on (host ~S) ~A.~%Conflicting values :~%~{~{~A~%  expected ~S~%  probed   ~S~%~}~}"
-		(operation-name operation)
-                (string-downcase (class-name (class-of resource)))
-                (resource-id resource)
-                (hostname host)
-		(class-name (class-of os))
-                diff))))
+      (let ((*print-level*))
+        (with-slots (operation resource diff host os) c
+          (write-str stream (operation-name operation)
+                     " failed for (resource '"
+                     (string-downcase (class-name (class-of resource)))
+                     " " (prin1-to-string (resource-id resource))
+                     ") on (host " (prin1-to-string (hostname host))
+                     ") " (class-name (class-of os))
+                     "." #\Newline
+                     "Conflicting values :" #\Newline)
+          (print-diff stream diff)))))
