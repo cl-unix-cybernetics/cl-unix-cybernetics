@@ -161,7 +161,7 @@
     (with-open-file (out path :direction :output
                          :element-type 'character
                          :external-format :utf-8
-                         :if-exists :overwrite
+                         :if-exists :supersede
                          :if-does-not-exist :create)
       (declare (type stream out))
       (dolist (sys (system-and-dependencies system))
