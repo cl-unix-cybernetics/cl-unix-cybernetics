@@ -25,18 +25,20 @@
 ;; TEST
 
 (setf (debug-p :shell) t)
+(setf (debug-p :sb-shell) nil)
 
-(with-host "root@dc"
-  (describe-probed (make-instance 'user :id "root")))
+(adams:clear-resources)
 
-(with-manifest "root@dc"
-  (make-instance 'user :id "thodg"))
+(resource 'host "ams.kmx.io"
+          :user "root"
+          :hostname "ams"
+          (resource 'openbsd-pkg "git"
+                    :ensure :installed)
+          (resource 'openbsd-pkg "emacs"
+                    :ensure :installed
+                    :flavor "no_x11")
+          (resource 'openbsd-pkg "sbcl"
+                    :ensure :installed))
 
-  (with-host "root@dc"
-    (adams::apply-manifest "root@dc")
-
-(manifest-resources (manifest "h"))
-
-(apply-manifest "h")
-
-(remove-manifest "h")
+(with-host "ams.kmx.io"
+  (sync *host*))
