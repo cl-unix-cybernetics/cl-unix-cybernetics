@@ -110,6 +110,7 @@
       value))
 
 (defun plist-keys (plist)
+  (declare (type list plist))
   (let ((keys))
     (loop
        (when (endp plist)
