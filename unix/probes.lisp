@@ -25,9 +25,7 @@
         (ensure :absent))
     (multiple-value-bind #1=(name passwd gid members)
         (with-group<5> #1# (grep (str id) "/etc/group")
-          (when (etypecase id
-                  (integer (= id gid))
-                  (string (string= id name)))
+          (when (string= id name)
             (setq ensure nil)
             (return (values* #1#))))
       (properties* (ensure . #1#)))))
@@ -39,12 +37,8 @@
         (ensure :absent))
     (multiple-value-bind #1=(login pass uid gid realname home shell)
       (with-passwd<5> #1#
-          (etypecase id
-            (integer (grep (str #\: id #\:) "/etc/passwd"))
-            (string (egrep (str #\^ id #\:) "/etc/passwd")))
-        (when (etypecase id
-                (string (string= id login))
-                (integer (= id uid)))
+          (egrep (str #\^ id #\:) "/etc/passwd")
+        (when (string= id login)
           (with-parent-resource *host*
             (setq ensure nil
                   home (resource 'directory home)
@@ -56,9 +50,7 @@
   (let ((id (resource-id user))
         groups)
     (unless (eq :absent (get-probed user :ensure))
-      (let* ((user-login (if (stringp id)
-                             id
-                             (get-probed user :login)))
+      (let* ((user-login id)
              (user-gid (get-probed user :gid))
              (user-group nil))
         (with-group<5> (name passwd gid members)
@@ -68,10 +60,14 @@
               (cond ((= user-gid gid)
                      (setq user-group (resource 'group name)))
                     ((find user-login members :test #'string=)
-                     (push (resource 'group name) groups))))
+                     (unless (find name groups :key #'resource-id :test #'string=)
+                       (push (resource 'group name) groups)))))
             (setq groups (sort groups #'string< :key #'resource-id)
                   groups (if user-group
-                             (cons user-group groups)
+                             (cons user-group
+                                   (remove (resource-id user-group)
+                                           groups :key #'resource-id
+                                           :test #'string=))
                              groups))))))
     (properties* groups)))
 
@@ -195,12 +191,10 @@
     (multiple-value-bind #1=(user pid cpu mem vsz rss tt state start time cmd)
         (with-ps<1>-u #1# (run "ps auxww | grep " (sh-quote id))
           (print #.(cons 'list '#1#))
-          (when (typecase id
-                  (integer (= id pid))
-                  (string (and (<= (length id) (length cmd))
-                               (string= id cmd :end2 (length id))
-                               (or (= (length id) (length cmd))
-                                   (char= #\Space (char cmd (length id)))))))
+          (when (and (<= (length id) (length cmd))
+                     (string= id cmd :end2 (length id))
+                     (or (= (length id) (length cmd))
+                         (char= #\Space (char cmd (length id)))))
             (return (values* #1#))))
         (properties* #1#))))
 

@@ -20,27 +20,29 @@
 
 (in-re-readtable)
 
+(defmethod probe-hostname ((host host) (os os-openbsd))
+  (list :hostname (first (run "hostname -s"))))
+
 (define-resource-class openbsd-pkg (pkg)
   ()
-  ((probe-openbsd-pkg :properties (:versions))))
+  ((probe-openbsd-pkg :properties (:versions :ensure :flavor))))
 
-(define-syntax pkg_info<1> (name version)
-  #~|\s*([^-\s]+(?:-[^-0-9\s][^-\s]*)*)-([0-9][^-\s]*(?:-[^\s]+)*)|
-  "Syntax for pkg_info(1) on OpenBSD"
-  (values name (list version)))
+(define-syntax pkg_info<1> (name version flavor)
+  #~|\s*([^-\s]+(?:-[^-0-9\s][^-\s]*)*)-([0-9][^-\s]*)(?:-([^-\s]+))|
+  "Syntax for pkg_info(1) on OpenBSD")
 
 (defgeneric probe-openbsd-pkg (resource os))
 
 (defmethod probe-openbsd-pkg ((pkg openbsd-pkg) (os os-openbsd))
   (let ((id (resource-id pkg))
         (ensure :absent))
-    (multiple-value-bind (versions)
-      (with-pkg_info<1> (name versions)
+    (multiple-value-bind (version flavor)
+      (with-pkg_info<1> (name version flavor)
           (run "pkg_info | egrep " (sh-quote (str "^" id "-")))
         (when (string= id name)
           (setf ensure :installed)
-          (return (values versions))))
-      (properties* ensure versions))))
+          (return (values version flavor))))
+      (properties* ensure version flavor))))
 
 (defmethod merge-property-values ((pkg openbsd-pkg)
                                   (property (eql :versions))
@@ -52,9 +54,9 @@
 (defmethod probe-host-packages ((host host) (os os-openbsd))
   (with-host host
     (let ((packages))
-      (with-pkg_info<1> (name versions) (run "pkg_info")
+      (with-pkg_info<1> (name version flavor) (run "pkg_info")
         (let ((pkg (resource 'openbsd-pkg name)))
-          (add-probed-properties pkg (properties* name versions))
+          (add-probed-properties pkg (properties* name version flavor))
           (push pkg packages)))
       (list :packages (nreverse packages)))))
 
