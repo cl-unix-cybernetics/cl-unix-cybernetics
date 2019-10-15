@@ -137,6 +137,8 @@
          (sorted-ops (sort-operations res operations))
          (results))
     (loop
+       (when (endp sorted-ops)
+         (return))
        (let* ((op (pop sorted-ops))
               (result (apply (operation-generic-function op)
                              res os plist)))
