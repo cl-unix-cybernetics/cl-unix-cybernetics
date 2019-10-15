@@ -90,7 +90,7 @@
            (error 'resource-operation-not-found
                   :resource res
                   :property property
-                  :host (current-host)
+                  :host *host*
                   :os os))
          (pushnew (the operation op) operations)))
     (nreverse operations)))

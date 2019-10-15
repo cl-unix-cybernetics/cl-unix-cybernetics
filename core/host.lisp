@@ -20,11 +20,7 @@
 
 (defun run (&rest command)
   "Run a command at the current host. COMMAND is assembled using STR."
-  (if (and (boundp '*host*)
-           (symbol-value '*host*))
-      (apply #'host-run *host* command)
-      (with-shell (shell)
-        (apply #'shell-run shell command))))
+  (apply #'host-run (current-host) command))
 
 ;;  localhost
 
@@ -61,9 +57,7 @@
     shell))
 
 (defun current-host ()
-  (or (when (boundp '*host*)
-        (symbol-value '*host*))
-      (localhost)))
+  (or *host* (localhost)))
 
 ;;  Host
 
