@@ -25,10 +25,10 @@
 
 (define-resource-class openbsd-pkg (pkg)
   ()
-  ((probe-openbsd-pkg :properties (:versions :ensure :flavor))))
+  ((probe-openbsd-pkg :properties (:ensure :flavor :version))))
 
 (define-syntax pkg_info<1> (name version flavor)
-  #~|\s*([^-\s]+(?:-[^-0-9\s][^-\s]*)*)-([0-9][^-\s]*)(?:-([^-\s]+))|
+  #~|\s*([^-\s]+(?:-[^-0-9\s][^-\s]+)*)-([0-9][^-\s]*)(?:-([^-\s]+))?|
   "Syntax for pkg_info(1) on OpenBSD")
 
 (defgeneric probe-openbsd-pkg (resource os))
