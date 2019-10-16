@@ -24,8 +24,6 @@
 
 ;;  localhost
 
-(assert (string= (machine-instance) (first (run "hostname"))))
-
 (defun local-hostname ()
   (machine-instance))
 

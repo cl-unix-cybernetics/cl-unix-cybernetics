@@ -27,6 +27,8 @@
 (setf (debug-p :shell) t)
 (setf (debug-p :sb-shell) nil)
 
+(assert (string= (machine-instance) (first (run "hostname"))))
+
 (adams:clear-resources)
 
 (resource 'host "ams.kmx.io"
