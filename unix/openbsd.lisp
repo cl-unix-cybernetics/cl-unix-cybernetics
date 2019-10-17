@@ -55,9 +55,10 @@
   (with-host host
     (let ((packages))
       (with-pkg_info<1> (name version flavor) (run "pkg_info")
-        (let ((pkg (resource 'openbsd-pkg name)))
-          (add-probed-properties pkg (properties* name version flavor))
-          (push pkg packages)))
+        (when (and name version)
+          (let ((pkg (resource 'openbsd-pkg name)))
+            (add-probed-properties pkg (properties* name version flavor))
+            (push pkg packages))))
       (list :packages (nreverse packages)))))
 
 #+nil
