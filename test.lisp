@@ -34,13 +34,27 @@
 (resource 'host "ams.kmx.io"
           :user "root"
           :hostname "ams"
-          (resource 'openbsd-pkg "git"
-                    :ensure :installed)
-          (resource 'openbsd-pkg "emacs"
-                    :ensure :installed
-                    :flavor "no_x11")
-          (resource 'openbsd-pkg "sbcl"
-                    :ensure :installed))
+          :packages '("emacs" "git" "rsync" "sbcl")
+          (resource 'group "dx"
+                    :gid 19256)
+          (resource 'user "dx"
+                    :uid 19256
+                    :gid 19256
+                    :home "/home/dx"))
 
 (with-host "ams.kmx.io"
+  (sync *host*))
+
+(resource 'host "vu.kmx.io"
+          :user "root"
+          :hostname "vu"
+          :packages '("emacs" "git" "rsync" "sbcl")
+          (resource 'group "dx"
+                    :gid 19256)
+          (resource 'user "dx"
+                    :uid 19256
+                    :gid 19256
+                    :home "/home/dx"))
+
+(with-host "vu.kmx.io"
   (sync *host*))
