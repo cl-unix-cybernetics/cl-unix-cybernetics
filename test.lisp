@@ -30,6 +30,7 @@
 (assert (string= (machine-instance) (first (run "hostname"))))
 
 (adams:clear-resources)
+(adams:clear-probed)
 
 (resource 'host "ams.kmx.io"
           :user "root"
