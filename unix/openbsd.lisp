@@ -27,22 +27,27 @@
   ()
   ((probe-openbsd-pkg :properties (:ensure :flavor :version))))
 
-(define-syntax pkg_info<1> (name version flavor)
-  #~|\s*([^-\s]+(?:-[^-0-9\s][^-\s]+)*)-([0-9][^-\s]*)(?:-([^-\s]+))?|
-  "Syntax for pkg_info(1) on OpenBSD")
+(define-syntax pkg_info<1> (name version flavor installed)
+  #~|\s*([^-\s]+(?:-[^-0-9\s][^-\s]+)*)-([0-9][^-\s]*)(?:-([^-\s]+))?( \(installed\))?|
+  "Syntax for pkg_info(1) on OpenBSD"
+  (values name version flavor (and installed t)))
 
 (defgeneric probe-openbsd-pkg (resource os))
 
 (defmethod probe-openbsd-pkg ((pkg openbsd-pkg) (os os-openbsd))
   (let ((id (resource-id pkg))
         (ensure :absent))
-    (multiple-value-bind (version flavor)
-      (with-pkg_info<1> (name version flavor)
-          (run "pkg_info | egrep " (sh-quote (str "^" id "-")))
-        (when (string= id name)
-          (setf ensure :installed)
-          (return (values version flavor))))
-      (properties* ensure version flavor))))
+    (re-bind #~|^([^:]+)(?::(.+)$)?| (id-name id-flavor) id
+      (multiple-value-bind (version flavor)
+          (with-pkg_info<1> (name version flavor installed)
+              (run "pkg_info -Q " (sh-quote id-name))
+            (when (and (string= id-name name)
+                       (or (null id-flavor)
+                           (string= id-flavor flavor)))
+              (when installed
+                (setf ensure :installed))
+              (return (values version flavor))))
+        (properties* ensure version flavor)))))
 
 (defmethod merge-property-values ((pkg openbsd-pkg)
                                   (property (eql :versions))
@@ -56,6 +61,8 @@
     (let ((packages))
       (with-pkg_info<1> (name version flavor) (run "pkg_info")
         (when (and name version)
+          (when flavor
+            (setq name (str name #\: flavor)))
           (let ((pkg (resource 'openbsd-pkg name)))
             (add-probed-properties pkg (properties* name version flavor))
             (push pkg packages))))
@@ -68,7 +75,10 @@
 (describe-probed (resource 'openbsd-pkg "emacs"))
 
 #+nil
-(probe-installed-packages)
+(probe-host-packages *host* (host-os *host*))
+
+#+nil
+(probe *host* :packages)
 
 #+nil
 (map nil #'describe-probed (probe-installed-packages))
