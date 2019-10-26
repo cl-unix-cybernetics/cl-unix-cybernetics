@@ -34,7 +34,7 @@
 (resource 'host "ams.kmx.io"
           :user "root"
           :hostname "ams"
-          :packages '("emacs" "git" "rsync" "sbcl")
+          :packages '("emacs" "git" "rsync" "sbcl" "texlive_texmf-full")
           (resource 'group "dx"
                     :gid 19256)
           (resource 'user "dx"
@@ -48,7 +48,7 @@
 (resource 'host "vu.kmx.io"
           :user "root"
           :hostname "vu"
-          :packages '("emacs" "git" "rsync" "sbcl")
+          :packages '("emacs" "git" "rsync" "sbcl" "texlive_texmf-full")
           (resource 'group "dx"
                     :gid 19256)
           (resource 'user "dx"
