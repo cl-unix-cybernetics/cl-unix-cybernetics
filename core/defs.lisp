@@ -252,7 +252,7 @@
   ((property :initarg :property)))
 
 (define-condition resource-operation-failed (resource-operation-error)
-  ((operation :initarg :operation)
+  ((operation :initarg :operation :type operation)
    (diff :initarg :diff)))
 
 ;;  Operators on property lists
