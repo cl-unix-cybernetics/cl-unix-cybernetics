@@ -24,7 +24,7 @@
   (let ((id (resource-id group))
         (ensure :absent))
     (multiple-value-bind #1=(name passwd gid members)
-        (with-group<5> #1# (grep (str id) "/etc/group")
+        (with-group<5> #1# (egrep (str "^" id ":") "/etc/group")
           (when (string= id name)
             (setq ensure nil)
             (return (values* #1#))))
