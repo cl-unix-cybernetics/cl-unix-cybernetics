@@ -51,11 +51,21 @@
           :hostname "vu"
           :packages '("emacs:no_x11" "git" "rsync" "sbcl" "texinfo" "texlive_texmf-full")
           (resource 'group "dx"
-                    :gid 19256)
+                    :gid 19256
+                    :ensure :present)
           (resource 'user "dx"
                     :uid 19256
                     :gid 19256
-                    :home "/home/dx"))
+                    :home "/home/dx"
+                    :ensure :present)
+          (resource 'group "git"
+                    :gid 7000
+                    :ensure :present)
+          (resource 'user "git"
+                    :uid 7000
+                    :gid 7000
+                    :home "/home/git"
+                    :ensure :present))
 
 (with-host "vu.kmx.io"
   (sync *host*))
