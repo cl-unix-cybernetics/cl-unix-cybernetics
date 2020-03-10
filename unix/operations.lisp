@@ -78,7 +78,11 @@
                uid))
         (g (or (when group (resource-id group))
                gid)))
-    (run "chown " u (when g `(":" ,g)) " " (resource-id res))))
+    (run "chown "
+         (sh-quote u)
+         (when g `(":" ,(sh-quote g)))
+         " "
+         (sh-quote (resource-id res)))))
 
 (defmethod op-chmod ((res vnode) (os os-unix) &key mode
                                                 &allow-other-keys)
@@ -94,6 +98,11 @@
       ((:absent) (run "rm " sh-id))
       ((:present) (run "touch " sh-id))
       ((nil)))))
+
+(defmethod op-file-content ((res file) (os os-unix) &key content)
+  (let ((id (resource-id res)))
+    (run "echo -n " (sh-quote content) " > " (sh-quote id))
+    (clear-probed res)))
 
 ;;  Directory
 

@@ -83,6 +83,7 @@
             (setq mode (mode (mode-permissions mode))
                   owner (resource 'user owner)
                   group (resource 'group group)
+                  size (parse-integer size)
                   ensure :present)
             (return (values* #1#))))
       (properties* (ensure . #1#)))))
@@ -95,6 +96,7 @@
         (with-stat<1>-r (name . #1#) (stat "-r" (sh-quote id))
           (when (and name (string= id (the string name)))
             (setq mode (mode (mode-permissions mode))
+                  size (parse-integer size)
                   ensure :present)
             (return (values* #1#))))
         (properties* (ensure . #1#)))))
@@ -138,7 +140,7 @@
   (let* ((size (get-probed file :size))
          (content (when size
                     (if (< size *probe-file-content-size-limit*)
-                        (run "cat " (sh-quote (resource-id file)))
+                        (str (run "cat " (sh-quote (resource-id file))))
                         :file-too-large))))
     (properties* content)))
 

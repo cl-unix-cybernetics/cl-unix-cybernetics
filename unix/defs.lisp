@@ -86,11 +86,13 @@
                     :properties (,algorithm))
                  algorithms))
          (nreverse algorithms)))
-  ((op-file-ensure :properties (:ensure)))
-  ((:op-properties (:ensure :mode :uid :gid :owner :group))))
+  ((op-file-ensure :properties (:ensure))
+   (op-file-content :properties (:content)))
+  ((:op-properties (:content :ensure :mode :uid :gid :owner :group))))
 
 (defgeneric probe-file-content (resource os))
 (defgeneric op-file-ensure (resource os &key ensure))
+(defgeneric op-file-content (resource os &key content))
 
 ;;  Directory
 
