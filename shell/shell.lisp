@@ -74,7 +74,9 @@ Error: ~S"
 
 (defun sh-quote (&rest str)
   (let ((str (str str)))
-    (if (cl-ppcre:scan "^[-+/=.,:^_0-9A-Za-z]*$" str)
+    (declare (type string str))
+    (if (and (not (position #\Newline str))
+             (cl-ppcre:scan "^[-+/=.,:^_0-9A-Za-z]*$" str))
         str
         (str #\" (re-subst "([$`\\\\\"])" "\\\\\\1" str) #\"))))
 
