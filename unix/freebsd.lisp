@@ -35,7 +35,7 @@
           file)))
     
 (defmethod probe-hostname ((host host) (os os-freebsd))
-  (let ((hostname (first (run "hostname")))
+  (let ((hostname (run-1 "hostname"))
         (rc-conf (get-sh-var "hostname" "/etc/rc.conf")))
     (list :hostname (if (equal hostname rc-conf)
                         hostname

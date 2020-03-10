@@ -22,6 +22,18 @@
   "Run a command at the current host. COMMAND is assembled using STR."
   (apply #'host-run (current-host) command))
 
+(defun strip-last-newline (string)
+  (when (stringp string)
+    (let* ((len (length string))
+           (len-1 (1- len)))
+      (if (< len 1)
+          string
+          (when (char= #\Newline (char string len-1))
+            (subseq string 0 len-1))))))
+
+(defun run-1 (&rest command)
+  (strip-last-newline (first (apply #'run command))))
+
 ;;  localhost
 
 (defun local-hostname ()
@@ -164,7 +176,7 @@
             (list :os os)))))))
 
 (defmethod probe-hostname ((host host) (os os-unix))
-  (list :hostname (first (run "hostname"))))
+  (list :hostname (run-1 "hostname")))
 
 (defmethod probe-boot-time ((host host) (os os-unix))
   (with-uptime<1> (time uptime users load1 load5 load15) (run "uptime")
@@ -172,7 +184,7 @@
                               (str uptime " seconds ago"))))))
 
 (defmethod probe-host-user ((host host) (os os-unix))
-  (list :user (first (run "whoami"))))
+  (list :user (run-1 "whoami")))
 
 (defmethod compare-property-values ((host host)
                                     (property (eql :os))

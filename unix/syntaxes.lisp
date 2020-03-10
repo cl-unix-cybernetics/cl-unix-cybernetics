@@ -30,7 +30,8 @@
 
 (define-syntax passwd<5> (name pass
 			  (#'parse-integer uid gid)
-			  realname home shell)
+			  realname home
+                          (#'strip-last-newline shell))
   #~|^([^:]*):([^:]*):([^:]*):([^:]*):([^:]*):([^:]*):([^:]*)$|
   "Syntax for the password file /etc/passwd. See passwd(5).")
 

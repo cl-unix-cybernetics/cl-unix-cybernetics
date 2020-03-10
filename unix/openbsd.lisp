@@ -21,7 +21,7 @@
 (in-re-readtable)
 
 (defmethod probe-hostname ((host host) (os os-openbsd))
-  (list :hostname (first (run "hostname -s"))))
+  (list :hostname (run-1 "hostname -s")))
 
 (define-resource-class openbsd-pkg (pkg)
   ()

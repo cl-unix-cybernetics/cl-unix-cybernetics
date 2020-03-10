@@ -23,7 +23,7 @@
 (defun uname ()
   (re-bind #~"^(\S+) (\S+) (\S+) (.+) (\S+)$"
       (os-name node-name os-release os-version machine)
-    (first (run "uname -a"))))
+    (run-1 "uname -a")))
 
 (defun grep_ (pattern &rest files)
   (join-str " " "grep" (sh-quote pattern) (mapcar #'sh-quote files)))

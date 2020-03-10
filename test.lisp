@@ -27,7 +27,7 @@
 (setf (debug-p :shell) t)
 (setf (debug-p :sb-shell) nil)
 
-(assert (string= (machine-instance) (first (run "hostname"))))
+(assert (string= (machine-instance) (run-1 "hostname")))
 
 (adams:clear-resources)
 (adams:clear-probed)
