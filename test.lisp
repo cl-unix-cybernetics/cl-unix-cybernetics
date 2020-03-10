@@ -65,6 +65,7 @@
                     :uid 7000
                     :gid 7000
                     :home "/home/git"
+                    :shell "/usr/local/bin/git-auth"
                     :ensure :present))
 
 (with-host "vu.kmx.io"
