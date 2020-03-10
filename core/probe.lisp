@@ -75,6 +75,10 @@
 	  (probes-of r)))
 
 (defun add-probed-properties (resource properties)
+  (format t "~&(resource '~A ~S ~{~S ~S~^ ~})~%"
+          (class-name (class-of resource))
+          (resource-id resource)
+          properties)
   (setf #1=(probed-properties resource)
         (merge-properties resource #1# properties)))
 
