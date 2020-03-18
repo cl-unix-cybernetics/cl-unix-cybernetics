@@ -150,6 +150,8 @@
    #:with-uptime<1>
    ;; OpenBSD
    #:openbsd-pkg
+   ;; helpers
+   #:read-file
    ))
 
 (defpackage :adams-user

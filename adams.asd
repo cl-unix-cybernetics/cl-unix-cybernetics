@@ -47,6 +47,7 @@
    (:module "core" :depends-on ("package" "shell")
 	    :components
 	    ((:file "defs")
+             (:file "helpers")
 	     (:file "host"       :depends-on ("defs" "os" "resource-container"
                                               "syntaxes"))
 	     (:file "os")
