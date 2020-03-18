@@ -177,7 +177,7 @@
           (let* ((probed (get-probed res property))
                  (desc (describe-probed-property-value res property
                                                        probed)))
-            (unless (match-specified-value res property specified desc)
+            (unless (match-specified-value res property specified desc os)
               (push (list property specified desc) failed))))))
     (setq failed (nreverse failed))
     (when failed
@@ -202,6 +202,7 @@
                 (op-keys (operation-properties op))
                 (op-plist (get-properties op-keys plist))
                 (op-fun (operation-generic-function op)))
+           (format t "~%")
            (apply (the function op-fun) res os op-plist)
            (clear-probed res op-keys)
            (sync-check host res op op-keys op-plist os))))))

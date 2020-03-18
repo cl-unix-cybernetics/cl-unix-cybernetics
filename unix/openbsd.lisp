@@ -33,8 +33,8 @@
   "Syntax for pkg_info(1) on OpenBSD"
   (values name version flavor (and installed t)))
 
-(define-syntax openbsd-pkg-id (name flavor)
-  #~|^([^:]+)(?::(.+)$)?|
+(define-syntax openbsd-pkg-id (name version flavor)
+  #~|^(.*?)(?:-([0-9].*?))?(?::(.+))?$|
   "Syntax for openbsd-pkg id")
 
 (defgeneric probe-openbsd-pkg (resource os))
@@ -42,18 +42,19 @@
 (defmethod probe-openbsd-pkg ((pkg openbsd-pkg) (os os-openbsd))
   (let ((id (resource-id pkg))
         (ensure :absent))
-    (with-openbsd-pkg-id (id-name id-flavor) (list id)
+    (with-openbsd-pkg-id (id-name id-version id-flavor) (list id)
       ;(format t "~&id-name ~S id-flavor ~S~%" id-name id-flavor)
       (multiple-value-bind (version flavor)
           (with-pkg_info<1> (name version flavor installed)
-              (run "pkg_info -Q " (sh-quote id-name))
+              (run "pkg_info | egrep " (sh-quote (str "^" id-name)))
             ;(format t "~&name ~S version ~S flavor ~S installed ~S~%" name version flavor installed)
             (when (and (string= id-name name)
                        (or (and (null id-flavor) (null flavor))
                            (and id-flavor flavor
-                                (string= id-flavor flavor))))
-              (when installed
-                (setf ensure :installed))
+                                (string= id-flavor flavor)))
+                       (or (null id-version)
+                           (string= id-version version)))
+              (setf ensure :installed)
               (return (values version flavor))))
         (return (properties* ensure version flavor))))))
 
@@ -64,14 +65,29 @@
   (sort (remove-duplicates (append old new))
         #'string<))
 
+(defmethod match-specified-value ((res host)
+                                  (property (eql :packages))
+                                  (specified list)
+                                  (probed list)
+                                  (os os-openbsd))
+  (format t "~&match-specified-value specified ~S~%" specified)
+  (format t "~&match-specified-value probed ~S~%" probed)
+  (force-output)
+  (with-openbsd-pkg-id (name version flavor) specified
+    (unless (find name probed :test #'string=)
+      (return nil)))
+  t)
+
 (defmethod op-openbsd-pkg ((pkg openbsd-pkg) (os os-openbsd) &key ensure)
-  (with-openbsd-pkg-id (id-name id-flavor) (list (resource-id pkg))
-    (when id-flavor
+  (with-openbsd-pkg-id (id-name id-version id-flavor) (list (resource-id pkg))
+    (when (and id-flavor (not id-version))
       (probe pkg :version))
     (let ((pkg-string (str id-name
+                           (when (or id-version id-flavor)
+                             `(#\- ,(or id-version
+                                        (get-probed pkg :version))))
                            (when id-flavor
-                             `(#\- ,(get-probed pkg :version)
-                               #\- ,id-flavor)))))
+                             `(#\- ,id-flavor)))))
       (cond
         ((eq ensure :absent)
          (run "pkg_delete " (sh-quote pkg-string)))
@@ -95,8 +111,15 @@
 
 (defmethod op-host-packages ((host host) (os os-openbsd) &key packages)
   (with-host host
-    (dolist (id packages)
-      (let ((pkg (resource 'openbsd-pkg id :ensure :installed)))
+    (with-openbsd-pkg-id (name version flavor) packages
+      (let ((pkg (resource 'openbsd-pkg name
+                           :ensure :installed)))
+        (when version
+          (resource 'openbsd-pkg name
+                    :version version))
+        (when flavor
+          (resource 'openbsd-pkg name
+                    :flavor flavor))
         (sync pkg)))))
 
 #+nil

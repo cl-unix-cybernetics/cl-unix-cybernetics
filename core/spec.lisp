@@ -97,14 +97,15 @@
 
 ;;  Methods for matching specified and probed values
 
-(defgeneric match-specified-value (resource property specified probed))
+(defgeneric match-specified-value (resource property specified probed os))
 
-(defmethod match-specified-value (resource property specified probed)
+(defmethod match-specified-value (resource property specified probed os)
   (equalp specified (describe-probed-property-value resource property probed)))
 
 (defmethod match-specified-value (resource (property (eql :ensure))
                                   (specified (eql :present))
-                                  (probed null))
+                                  (probed null)
+                                  os)
   t)
 
 ;;  Methods to get current status of resource
@@ -126,7 +127,7 @@ Second value lists properties in line with spec. Format is
               (specified (pop specified-properties))
               (probed (get-probed res property))
               (desc (describe-probed-property-value res property probed)))
-         (unless (match-specified-value res property specified desc)
+         (unless (match-specified-value res property specified desc (host-os *host*))
            (push `(,property ,specified ,desc) diff))))
     (nreverse diff)))
 
