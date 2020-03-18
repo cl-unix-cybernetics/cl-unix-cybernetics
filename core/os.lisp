@@ -31,7 +31,7 @@
     (format nil "~A ~A ~A ~A"
 	    machine name release version)))
 
-(defmethod match-specified-value ((host host) (property (eql :os)) specified probed)
+(defmethod match-specified-value ((host host) (property (eql :os)) specified probed os)
   (re-match `(:sequence ,specified) probed))
 
 ;;  UNIX
