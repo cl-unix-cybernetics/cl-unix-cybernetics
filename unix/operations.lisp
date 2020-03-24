@@ -74,6 +74,10 @@
     (assert (= uid (get-probed owner :uid))))
   (when (and gid group)
     (assert (= gid (get-probed group :gid))))
+  (when owner
+    (sync owner))
+  (when group
+    (sync group))
   (let ((u (or (when owner (resource-id owner))
                uid))
         (g (or (when group (resource-id group))
