@@ -103,10 +103,10 @@
 
 ;;  Regular file
 
-(eval-when (:compile-toplevel :load-toplevel :execute)
+(eval-when (:compile-toplevel :load-toplevel)
   (defparameter *cksum-defs* nil))
 
-(eval-when (:compile-toplevel :load-toplevel :execute)
+(eval-when (:compile-toplevel :load-toplevel)
   (defun cksum-defs ()
     (dolist (algorithm *cksum-algorithms*)
       (declare (type symbol algorithm))
@@ -133,7 +133,7 @@
     (setf *cksum-defs* (nreverse *cksum-defs*))
     (push 'progn *cksum-defs*)))
 
-(eval-when (:compile-toplevel :load-toplevel :execute)
+(eval-when (:compile-toplevel :load-toplevel)
   #.(cksum-defs))
 
 (defmethod probe-file-content ((file file) (os os-unix))
