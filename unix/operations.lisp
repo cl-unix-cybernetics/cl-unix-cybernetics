@@ -43,9 +43,15 @@
 
 ;;  User
 
+(defun sync-groups ()
+  (do-resources (res) (current-host)
+    (when (typep res 'group)
+      (sync res))))
+
 (defmethod op-update-user ((user user) (os os-unix)
                            &key ensure uid gid realname home shell
                              login-class groups)
+  (sync-groups)
   (run-as-root
    (join-str " "
              (ecase ensure
