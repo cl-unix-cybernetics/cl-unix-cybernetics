@@ -75,7 +75,7 @@
     `(:md5 :rmd160 :sha1 :sha224 :sha256 :sha384 :sha512
            ,@*cksum-legacy-algorithms*)))
 
-(defvar *probe-file-content-size-limit* 8192)
+(defvar *probe-file-content-size-limit* (* 1024 1024))
 
 (define-resource-class file (vnode)
   ()
