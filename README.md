@@ -10,6 +10,7 @@ consider handing him any rookie task you might have he shall gladly take
 them upon him and will probably crash the system and need your help to fix it
 but, hey, that's what unpaid interns are for, right ?
 
+
 Current status
 --------------
 
@@ -22,6 +23,7 @@ groups and files.
 
 We are currently teaching him about new kinds of resources and how to read
 resource specification manifests.
+
 
 Security design
 ---------------
@@ -37,6 +39,7 @@ Adams does not grant access to data belonging to any host.
 Adams does not send any data that is not of direct concern to the host.
 In short, all UNIX permissions are respected, Adams is a regular UNIX user.
 
+
 Usage
 -----
 
@@ -49,20 +52,23 @@ Usage
 
 3. Build and install adams binary
 ```
-  $ cd ~/common-lisp/cl-adams/adams && make
+  $ cd ~/common-lisp/cl-adams/adams
+  $ make
   $ sudo cp build/adams /usr/local/bin/adams
 ```
 
 4. Configure emacs (optional)
-In your `~/.emacs`
+
+In your `~/.emacs` file :
 ```
   ;;  Adams
   (add-to-list 'auto-mode-alist '("\\.adams\\'" . lisp-mode))
 ```
 
-5. Write some resources in a .adams script
-File: my-config.adams
-``` common-lisp
+5. Write some resources in a `.adams` script
+
+File `my-config.adams` :
+```
   #!/usr/local/bin/adams --script
 
   (resource 'host "adams.kmx.io"
