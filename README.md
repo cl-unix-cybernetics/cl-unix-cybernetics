@@ -49,14 +49,14 @@ Usage
 
 ### 2. Install adams
 
-```
+``` shell
   $ sbcl --eval '(repo:install :adams)'
 ```
 
 
 ### 3. Build and install adams binary
 
-```
+``` shell
   $ cd ~/common-lisp/cl-adams/adams
   $ make
   $ sudo cp build/adams /usr/local/bin/adams
@@ -66,7 +66,7 @@ Usage
 ### 4. Configure emacs (optional)
 
 In your `~/.emacs` file :
-```
+``` emacs-lisp
   ;;  Adams
   (add-to-list 'auto-mode-alist '("\\.adams\\'" . lisp-mode))
 ```
@@ -75,7 +75,7 @@ In your `~/.emacs` file :
 ### 5. Write some resources in a `.adams` script
 
 In the `tutorial.adams` file :
-```
+``` common-lisp
   #!/usr/local/bin/adams --script
 
   (resource 'host "adams.kmx.io"
@@ -91,7 +91,7 @@ In the `tutorial.adams` file :
 
 ### 6. Profit.
 
-```
+``` shell
   $ chmod 755 tutorial.adams
   $ ./tutorial.adams
 ```
@@ -103,7 +103,7 @@ according to the resource specifications given in the file.
 ### 7. DRY up your scripts using `#.(include "file")`
 
 In the `user/dx.adams` file :
-```
+``` common-lisp
   ;; Thomas de Grivel (kmx.io)
   (resource 'group "dx"
             :gid 19256
