@@ -131,8 +131,8 @@ In your main script :
 ```
 
 
-License
--------
+ISC License
+-----------
 ```
 Permission to use, copy, modify, and distribute this software for any
 purpose with or without fee is hereby granted, provided that the above
