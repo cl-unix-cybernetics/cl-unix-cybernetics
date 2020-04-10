@@ -151,6 +151,7 @@
    ;; OpenBSD
    #:openbsd-pkg
    ;; helpers
+   #:include
    #:read-file
    ))
 

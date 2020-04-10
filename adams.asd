@@ -50,6 +50,7 @@
              (:file "helpers")
              (:file "host"       :depends-on ("defs" "os" "resource-container"
                                                      "syntaxes"))
+             (:file "include")
              (:file "operation"  :depends-on ("defs" "host" "properties"))
 	     (:file "os")
 	     (:file "probe"      :depends-on ("defs" "host" "properties"))

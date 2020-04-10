@@ -37,10 +37,12 @@
 ;;  Parse specifications
 
 (defmethod parse-next-specification ((res resource) spec)
-  (let ((property (pop spec))
-	(value (pop spec)))
-    (setf (get-specified res property) value)
-    spec))
+  (when (and (symbolp (first spec))
+             (consp (rest spec)))
+    (let ((property (pop spec))
+          (value (pop spec)))
+      (setf (get-specified res property) value)
+      spec)))
 
 (defmethod parse-next-specification ((res resource-container) spec)
   (cond ((typep (first spec) 'resource)
@@ -56,10 +58,14 @@
   (loop
      (when (endp spec)
        (return))
-     (let ((next-spec (parse-next-specification res spec)))
-       (when (eq spec next-spec)
-         (error "Invalid specification : ~S" spec))
-       (setq spec next-spec)))
+     (if (consp (first spec))
+         (progn
+           (parse-specification res (first spec))
+           (setq spec (rest spec)))
+         (let ((next-spec (parse-next-specification res spec)))
+           (when (eq spec next-spec)
+             (error "Invalid specification : ~S" spec))
+           (setq spec next-spec))))
   res)
 
 #+nil
