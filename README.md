@@ -41,11 +41,25 @@ Usage
 -----
 
 1. Install [repo](https://github.com/common-lisp-repo/repo).
+
 2. Install adams
 ```
   $ sbcl --eval '(repo:install :adams)'
 ```
-2. Build adams binary
+
+3. Build and install adams binary
 ```
   $ cd ~/common-lisp/cl-adams/adams && make
+  $ sudo cp build/adams /usr/local/bin/adams
+```
+
+4. Use shebang in your executable script
+File: my-config.adams
+```
+#!/usr/local/bin/adams --script
+
+(resource 'host "adams.kmx.io"
+          :user "adams"
+          (resource 'user "adams"
+                    :shell "/bin/sh"))
 ```
