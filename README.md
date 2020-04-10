@@ -43,7 +43,7 @@ Usage
 1. Install [repo](https://github.com/common-lisp-repo/repo).
 2. Install adams
 ```
-  $ sbcl --eval '(repo:install :adams)
+  $ sbcl --eval '(repo:install :adams)'
 ```
 2. Build adams binary
 ```
