@@ -14,15 +14,20 @@ but, hey, that's what unpaid interns are for, right ?
 Current status
 --------------
 
-Adams is currently able to use a local shell or connect to remote hosts via
-ssh.
-He is quite the hardcore hacker wannabe using only /bin/sh though ksh and
-bash suit him fine too.
-He's still green but he can already gather basic information about users,
-groups and files.
+Adams is currently able to use a local shell or connect to remote hosts
+via ssh.
 
-We are currently teaching him about new kinds of resources and how to read
-resource specification manifests.
+Adams is this hardcore hacker using only `/bin/sh` commands.
+This makes `ksh` and `bash` suitable shells for adams as they are
+compatible with `/bin/sh`.
+
+Supported resource types :
+ - Host (hostname)
+ - User (useradd, usermod, userdel)
+ - Group (groupadd, groupmod, groupdel)
+ - File (owner, group, permissions, content)
+ - Directory (owner, group, permissions)
+ - Package (Debian, OpenBSD)
 
 
 Security design
