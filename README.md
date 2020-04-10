@@ -67,7 +67,7 @@ In your `~/.emacs` file :
 
 5. Write some resources in a `.adams` script
 
-File `my-config.adams` :
+In the `tutorial.adams` file :
 ```
   #!/usr/local/bin/adams --script
 
