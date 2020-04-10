@@ -116,7 +116,7 @@ In the `user/dx.adams` file :
 ```
 
 In your main script :
-```
+``` common-lisp
   #!/usr/local/bin/adams --script
 
   (resource 'host "adams.kmx.io"
