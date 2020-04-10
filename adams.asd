@@ -45,14 +45,14 @@
 	     #+sbcl
 	     (:file "sb-shell" :depends-on ("shell"))))
    (:module "core" :depends-on ("package" "shell")
-	    :components
-	    ((:file "defs")
+            :components
+            ((:file "defs")
              (:file "helpers")
-	     (:file "host"       :depends-on ("defs" "os" "resource-container"
-                                              "syntaxes"))
+             (:file "host"       :depends-on ("defs" "os" "resource-container"
+                                                     "syntaxes"))
+             (:file "operation"  :depends-on ("defs" "host" "properties"))
 	     (:file "os")
 	     (:file "probe"      :depends-on ("defs" "host" "properties"))
-	     (:file "operation"  :depends-on ("defs" "host" "properties"))
 	     (:file "properties" :depends-on ("defs"))
 	     (:file "resource"   :depends-on ("defs" "probe"))
 	     (:file "resource-container" :depends-on ("defs"))
