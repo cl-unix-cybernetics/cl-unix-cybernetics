@@ -1,15 +1,5 @@
-Adams
-=====
-
-Adams is our new cybernetic DevOps. Please welcome him and make him feel
-at home, I hope he will find a nice place to work amongst us. So far he's
-been a brilliant student though a bit dumb and formal, I hope he will find
-a warm and welcoming place in our hearts.
-For the next months he will remain in formation so if you would please
-consider handing him any rookie task you might have he shall gladly take
-them upon him and will probably crash the system and need your help to fix it
-but, hey, that's what unpaid interns are for, right ?
-
+Adams 0.1
+=========
 
 Current status
 --------------
