@@ -54,7 +54,7 @@ Usage
 ```
 
 
-### 3. Build and install adams binary
+### 3. Build and install the `adams` binary
 
 ``` shell
   $ cd ~/common-lisp/cl-adams/adams
