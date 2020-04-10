@@ -43,21 +43,27 @@ In short, all UNIX permissions are respected, Adams is a regular UNIX user.
 Usage
 -----
 
-1. Install [repo](https://github.com/common-lisp-repo/repo).
 
-2. Install adams
+### 1. Install [repo](https://github.com/common-lisp-repo/repo).
+
+
+### 2. Install adams
+
 ```
   $ sbcl --eval '(repo:install :adams)'
 ```
 
-3. Build and install adams binary
+
+### 3. Build and install adams binary
+
 ```
   $ cd ~/common-lisp/cl-adams/adams
   $ make
   $ sudo cp build/adams /usr/local/bin/adams
 ```
 
-4. Configure emacs (optional)
+
+### 4. Configure emacs (optional)
 
 In your `~/.emacs` file :
 ```
@@ -65,7 +71,8 @@ In your `~/.emacs` file :
   (add-to-list 'auto-mode-alist '("\\.adams\\'" . lisp-mode))
 ```
 
-5. Write some resources in a `.adams` script
+
+### 5. Write some resources in a `.adams` script
 
 In the `tutorial.adams` file :
 ```
@@ -74,5 +81,51 @@ In the `tutorial.adams` file :
   (resource 'host "adams.kmx.io"
             :user "adams"
             (resource 'user "adams"
-                      :shell "/bin/sh"))
+                      :shell "/bin/sh"
+                      :ensure :present))
+
+  (with-host "adams.kmx.io"
+    (sync *host*))
+```
+
+
+### 6. Profit.
+
+```
+  $ chmod 755 tutorial.adams
+  $ ./tutorial.adams
+```
+
+The `tutorial.adams` script will synchronize the host "adams.kmx.io"
+according to the resource specifications given in the file.
+
+
+### 7. DRY up your scripts using `#.(include "file")`
+
+In the `user/dx.adams` file :
+```
+  ;; Thomas de Grivel (kmx.io)
+  (resource 'group "dx"
+            :gid 19256
+            :ensure :present)
+  (resource 'user "dx"
+            :uid 19256
+            :gid 19256
+            :home "/home/dx"
+            :ensure :present)
+```
+
+In your main script :
+```
+  #!/usr/local/bin/adams --script
+
+  (resource 'host "adams.kmx.io"
+            :user "adams"
+            (resource 'user "adams"
+                      :shell "/bin/sh"
+                      :ensure :present)
+            #.(include "user/dx"))
+
+  (with-host "adams.kmx.io"
+    (sync *host*))
 ```
