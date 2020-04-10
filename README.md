@@ -53,13 +53,20 @@ Usage
   $ sudo cp build/adams /usr/local/bin/adams
 ```
 
-4. Use shebang in your executable script
-File: my-config.adams
+4. Configure emacs (optional)
+In your `~/.emacs`
 ```
-#!/usr/local/bin/adams --script
+  ;;  Adams
+  (add-to-list 'auto-mode-alist '("\\.adams\\'" . lisp-mode))
+```
 
-(resource 'host "adams.kmx.io"
-          :user "adams"
-          (resource 'user "adams"
-                    :shell "/bin/sh"))
+5. Write some resources in a .adams script
+File: my-config.adams
+``` common-lisp
+  #!/usr/local/bin/adams --script
+
+  (resource 'host "adams.kmx.io"
+            :user "adams"
+            (resource 'user "adams"
+                      :shell "/bin/sh"))
 ```
