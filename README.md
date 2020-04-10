@@ -152,7 +152,10 @@ Contribute
 ----------
 
 To contribute, fork this repository and send us a pull request.
-Your code must be published under the above license terms.
+
+Your code must be published under the
+[ISC License](https://en.wikipedia.org/wiki/ISC_license)
+terms.
 
 
 Authors
