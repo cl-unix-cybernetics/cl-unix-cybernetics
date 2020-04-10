@@ -39,3 +39,13 @@ In short, all UNIX permissions are respected, Adams is a regular UNIX user.
 
 Usage
 -----
+
+1. Install [repo](https://github.com/common-lisp-repo/repo).
+2. Install adams
+```
+  $ sbcl --eval '(repo:install :adams)
+```
+2. Build adams binary
+```
+  $ cd ~/common-lisp/cl-adams/adams && make
+```
