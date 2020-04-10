@@ -131,20 +131,8 @@ In your main script :
 ```
 
 
-Contribute
-----------
-
-To contribute, fork this repository and send us a pull request.
-
-
-Authors
+License
 -------
-
-Thomas de Grivel <thoxdg@gmail.com>
-
-
-ISC License
------------
 
 Permission to use, copy, modify, and distribute this software for any
 purpose with or without fee is hereby granted, provided that the above
@@ -157,3 +145,16 @@ ANY SPECIAL, DIRECT, INDIRECT, OR CONSEQUENTIAL DAMAGES OR ANY DAMAGES
 WHATSOEVER RESULTING FROM LOSS OF USE, DATA OR PROFITS, WHETHER IN AN
 ACTION OF CONTRACT, NEGLIGENCE OR OTHER TORTIOUS ACTION, ARISING OUT OF
 OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
+
+
+Contribute
+----------
+
+To contribute, fork this repository and send us a pull request.
+Your code must be published under the above license terms.
+
+
+Authors
+-------
+
+Thomas de Grivel <thoxdg@gmail.com>
