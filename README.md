@@ -1,7 +1,7 @@
 Adams 0.1
 =========
 
-Adams is a UNIX system administration tool.
+Adams is a UNIX system administration tool written in Common Lisp.
 
 You describe your systems (hosts) using resources having properties.
 
