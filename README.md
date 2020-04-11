@@ -15,6 +15,14 @@ and
 [Puppet](https://puppet.com/).
 
 
+Configuration example
+---------------------
+
+Check out
+<https://github.com/kmx-io/kmx-io/>
+for a detailed example of Adams usage.
+
+
 Current status
 --------------
 
