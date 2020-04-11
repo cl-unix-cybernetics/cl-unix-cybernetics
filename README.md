@@ -1,6 +1,20 @@
 Adams 0.1
 =========
 
+Adams is a UNIX system administration tool.
+
+You describe your systems (hosts) using resources having properties.
+
+The properties are then probed and synchronized by Adams using only
+`/bin/sh` on the remote host, and `/usr/bin/ssh` on the control host.
+
+More viable alternatives include
+[Ansible](https://www.ansible.com/),
+[Chef](https://www.chef.io/)
+and
+[Puppet](https://puppet.com/).
+
+
 Current status
 --------------
 
