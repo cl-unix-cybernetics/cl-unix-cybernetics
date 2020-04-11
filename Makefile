@@ -6,8 +6,14 @@ LISP_LOAD = ${LISP} --load
 
 all: ${PROGRAM}
 
-${PROGRAM}: build.lisp
-	LANG=C.UTF-8 ${LISP_LOAD} build.lisp
+deps:
+	LANG=C.UTF-8 ${LISP_LOAD} prepare-build.lisp --quit
+
+build/systems.lisp: prepare-build.lisp system.lisp adams.asd
+	LANG=C.UTF-8 ${LISP_LOAD} prepare-build.lisp --quit
+
+${PROGRAM}: build.lisp system.lisp config.lisp build/systems.lisp toplevel.lisp
+	LANG=C.UTF-8 ${LISP_LOAD} build.lisp --quit
 
 clean:
 	rm -rf build/*
@@ -15,4 +21,4 @@ clean:
 install: ${PROGRAM}
 	install -m 0755 ${PROGRAM} ${PREFIX}/bin
 
-.PHONY: all clean install ${PROGRAM}
+.PHONY: all clean deps install ${PROGRAM}
