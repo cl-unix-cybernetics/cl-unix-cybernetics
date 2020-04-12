@@ -9,10 +9,10 @@ all: ${PROGRAM}
 deps:
 	LANG=C.UTF-8 ${LISP_LOAD} prepare-build.lisp --quit
 
-build/systems.lisp: prepare-build.lisp system.lisp adams.asd
+build/systems.lisp: prepare-build.lisp adams.asd
 	LANG=C.UTF-8 ${LISP_LOAD} prepare-build.lisp --quit
 
-${PROGRAM}: build.lisp system.lisp config.lisp build/systems.lisp toplevel.lisp
+${PROGRAM}: build.lisp config.lisp build/systems.lisp toplevel.lisp
 	LANG=C.UTF-8 ${LISP_LOAD} build.lisp --quit
 
 clean:
