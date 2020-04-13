@@ -26,12 +26,17 @@
     (try spec)
     (try spec ".adams")))
 
+(defun include/resolve-filename! (spec)
+  (or (include/resolve-filename spec)
+      (error "(include ~S) => file not found.~%
+Current directory : ~S" source *default-pathname-defaults*)))
+
 (defun include (&rest sources)
   (let* ((head (cons 'list nil))
          (tail head)
          (eof (gensym "EOF")))
     (dolist (source sources)
-      (let ((path (include/resolve-filename source)))
+      (let ((path (include/resolve-filename! source)))
         (with-open-file (in path
                             :element-type 'character
                             :external-format :utf-8)
