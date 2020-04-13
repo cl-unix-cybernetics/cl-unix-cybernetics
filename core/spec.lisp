@@ -58,14 +58,13 @@
   (loop
      (when (endp spec)
        (return))
-     (if (consp (first spec))
-         (progn
-           (parse-specification res (first spec))
-           (setq spec (rest spec)))
-         (let ((next-spec (parse-next-specification res spec)))
-           (when (eq spec next-spec)
-             (error "Invalid specification : ~S" spec))
-           (setq spec next-spec))))
+     (typecase (first spec)
+       (cons (parse-specification res (first spec))
+             (setq spec (rest spec)))
+       (t (let ((next-spec (parse-next-specification res spec)))
+            (when (eq spec next-spec)
+              (error "Invalid specification : ~S" spec))
+            (setq spec next-spec)))))
   res)
 
 #+nil
