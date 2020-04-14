@@ -101,7 +101,25 @@
 
 ;;  File
 
+(defun path-parent-directory (&rest path-parts)
+  (let* ((path (the string (str path-parts)))
+         (sep (position #\/ path
+                        :from-end t
+                        :end (1- (length path))
+                        :test #'char=)))
+    (if sep
+        (subseq path 0 sep)
+        "/")))
+
+(defgeneric parent-directory (x))
+
+(defmethod parent-directory ((res vnode))
+  (let* ((path (resource-id res))
+         (parent-path (path-parent-directory path)))
+    (resource 'directory parent-path)))
+
 (defmethod op-file-ensure ((res file) (os os-unix) &key ensure)
+  (sync (parent-directory res))
   (let* ((id (resource-id res))
          (sh-id (sh-quote id)))
     (ecase ensure
@@ -110,6 +128,7 @@
       ((nil)))))
 
 (defmethod op-file-content ((res file) (os os-unix) &key content)
+  (sync (parent-directory res))
   (let ((id (resource-id res)))
     (run "echo -n " (sh-quote content) " > " (sh-quote id))
     (clear-probed res)))
