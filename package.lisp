@@ -153,6 +153,7 @@
    ;; helpers
    #:include
    #:read-file
+   #:str
    ))
 
 (defpackage :adams-user
