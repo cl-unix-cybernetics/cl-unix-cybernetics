@@ -25,7 +25,7 @@
 (define-syntax group<5> (name passwd
 			 (#'parse-integer gid)
 			 ((lambda (m) (cl-ppcre:split "," m)) members))
-  #~|^([^:]*):([^:]*):([^:]*):([^:]*)$|
+  #~|^([^:]*):([^:]*):([^:]*):([^:\s]*)\s*$|
   "Syntax of the group permissions file /etc/group. See group(5).")
 
 (define-syntax passwd<5> (name pass
