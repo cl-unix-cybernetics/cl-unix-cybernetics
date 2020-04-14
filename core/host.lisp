@@ -71,7 +71,7 @@
 
 ;;  Host
 
-(defun hostname (host)
+(defun hostname (&optional (host *host*))
   (resource-id (the host host)))
 
 ;;  Host shell
