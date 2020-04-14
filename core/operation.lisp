@@ -170,14 +170,13 @@
 (defun print-diff (stream diff)
   (dolist (item diff)
     (destructuring-bind (property expected probed) item
-      (declare (type symbol property)
-               (type list expected probed))
+      (declare (type symbol property))
       (write-str stream property #\Newline
                  " expected ")
-      (print-list expected stream)
+      (prin1 expected stream)
       (write-str stream #\Newline
                  " probed   ")
-      (print-list probed stream)
+      (prin1 probed stream)
       (write-str stream #\Newline))))
 
 (defmethod print-object ((c resource-operation-failed) stream)
