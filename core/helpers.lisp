@@ -18,12 +18,13 @@
 
 (in-package :adams)
 
-(defun read-file (path)
-  (with-output-to-string (out)
-    (with-open-file (stream path :element-type 'character)
-      (let ((buf (make-string 4096)))
-        (loop
-           (let ((size (read-sequence buf stream)))
-             (when (zerop size)
-               (return))
-             (write-sequence buf out :end size)))))))
+(defun read-file (&rest path-parts)
+  (let ((path (str path-parts)))
+    (with-output-to-string (out)
+      (with-open-file (stream path :element-type 'character)
+        (let ((buf (make-string 4096)))
+          (loop
+             (let ((size (read-sequence buf stream)))
+               (when (zerop size)
+                 (return))
+               (write-sequence buf out :end size))))))))
