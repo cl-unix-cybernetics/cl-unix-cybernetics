@@ -29,7 +29,7 @@
 (defun include/resolve-filename! (spec)
   (or (include/resolve-filename spec)
       (error "(include ~S) => file not found.~%
-Current directory : ~S" source *default-pathname-defaults*)))
+Current directory : ~S" spec *default-pathname-defaults*)))
 
 (defun include (&rest sources)
   (let* ((head (cons 'list nil))
