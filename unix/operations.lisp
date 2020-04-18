@@ -136,6 +136,8 @@
   (sync (parent-directory res))
   (let ((id (resource-id res)))
     (run "echo -n " (sh-quote content) " > " (sh-quote id))
+    (when-let (after (get-specified res :after))
+      (funcall (the function after) res os))
     (clear-probed res)))
 
 ;;  Directory
