@@ -122,14 +122,33 @@ First value lists properties out of specification in the following format :
 Second value lists properties in line with spec. Format is
   (PROPERTY-NAME VALUE)"))
 
-(defmethod resource-diff ((res resource))
-  (let ((specified-properties (specified-properties res))
-        diff)
+(defvar *virtual-properties*
+  '(:after
+    :before)
+  "Special properties that will not be synchronized.")
+
+(declaim (type list *virtual-properties*))
+
+(defun diffable-properties (specified-properties)
+  (let ((properties))
     (loop
        (when (endp specified-properties)
-         (return))
+         (return (nreverse properties)))
        (let* ((property (pop specified-properties))
-              (specified (pop specified-properties))
+              (specified (pop specified-properties)))
+         (unless (find property *virtual-properties* :test #'eq)
+           (push property properties)
+           (push specified properties))))))
+
+(defmethod resource-diff ((res resource))
+  (let* ((specified-properties (specified-properties res))
+         (properties (diffable-properties specified-properties))
+         diff)
+    (loop
+       (when (endp properties)
+         (return))
+       (let* ((property (pop properties))
+              (specified (pop properties))
               (probed (get-probed res property))
               (desc (describe-probed-property-value res property probed)))
          (unless (match-specified-value res property specified desc (host-os *host*))
