@@ -144,4 +144,7 @@
 
 (defmethod match-specified-value ((resource vnode) (property (eql :mode))
                                   specified probed os)
-  (= (mode-fixnum specified) (mode-fixnum probed)))
+  (or (eq specified probed)
+      (and specified
+           probed
+           (= (mode-fixnum specified) (mode-fixnum probed)))))
