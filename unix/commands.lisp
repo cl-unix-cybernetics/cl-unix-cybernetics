@@ -54,3 +54,9 @@
 
 (defun sudo (&rest command)
   (run (apply #'sudo_ command)))
+
+(defun doas_ (&rest command)
+  (join-str " " "doas" command))
+
+(defun doas (&rest command)
+  (run (apply #'doas_ command)))

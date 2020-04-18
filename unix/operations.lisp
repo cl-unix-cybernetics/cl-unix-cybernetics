@@ -18,11 +18,16 @@
 
 (in-package :adams)
 
+(defgeneric run-as-root-command (host os))
+
+(defmethod run-as-root-command ((host t) (os os-unix))
+  "sudo ")
+
 (defun run-as-root (&rest command)
-  (apply #'run
-         (unless (equal "root" (get-probed (current-host) :user))
-           "sudo ")
-         command))
+  (let* ((host (current-host))
+         (prefix (unless (equal "root" (get-probed host :user))
+                   (run-as-root-command host (get-probed host :os)))))
+    (apply #'run prefix command)))
 
 ;;  Host operations
 

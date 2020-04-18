@@ -20,6 +20,9 @@
 
 (in-re-readtable)
 
+(defmethod run-as-root-command ((host t) (os os-openbsd))
+  "doas ")
+
 (defmethod probe-hostname ((host host) (os os-openbsd))
   (list :hostname (run-1 "hostname -s")))
 

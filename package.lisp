@@ -123,6 +123,8 @@
    #:host-run
    #:localhost
    #:run
+   #:run-as-root
+   #:run-as-root-command
    #:ssh-host
    #:with-connected-host
    #:with-host
