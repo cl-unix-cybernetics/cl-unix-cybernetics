@@ -153,6 +153,8 @@
    ;; helpers
    #:include
    #:read-file
+   #:static-file
+   #:static-directory
    #:str
    ))
 

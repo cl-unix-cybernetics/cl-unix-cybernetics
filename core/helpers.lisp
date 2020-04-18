@@ -28,3 +28,20 @@
                (when (zerop size)
                  (return))
                (write-sequence buf out :end size))))))))
+
+(defun static-file (path &rest plist)
+  (resource 'file path
+            :content (read-file (hostname *host*) path)
+            plist))
+
+(defun static-directory (directory &rest plist)
+  (let* ((host-dir (truename (pathname (the string
+                                            (str (hostname) #\/)))))
+         (dir-path (str host-dir directory)))
+    (print dir-path)
+    (mapcar (lambda (path)
+              (let ((name (enough-namestring path host-dir)))
+              (resource 'file (str "/" name)
+                        :content (read-file path)
+                        plist)))
+                  (directory dir-path))))
