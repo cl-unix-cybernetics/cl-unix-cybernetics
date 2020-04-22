@@ -23,8 +23,8 @@
            (let ((path (str parts)))
              (when (probe-file path)
                (return-from include/resolve-filename path)))))
-    (try spec)
-    (try spec ".adams")))
+    (try spec ".adams")
+    (try spec)))
 
 (defun include/resolve-filename! (spec)
   (or (include/resolve-filename spec)
