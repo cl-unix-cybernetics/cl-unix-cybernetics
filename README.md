@@ -1,4 +1,4 @@
-Adams 0.1
+Adams 0.2
 =========
 
 Adams is a UNIX system administration tool written in Common Lisp.
