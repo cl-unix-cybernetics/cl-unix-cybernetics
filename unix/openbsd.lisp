@@ -20,6 +20,9 @@
 
 (in-re-readtable)
 
+(defmethod echo-command ((host t) (os os-openbsd))
+  "echo -E -n ")
+
 (defmethod run-as-root-command ((host t) (os os-openbsd))
   "doas ")
 

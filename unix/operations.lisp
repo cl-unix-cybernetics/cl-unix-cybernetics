@@ -18,6 +18,23 @@
 
 (in-package :adams)
 
+;;  Echo
+
+(defgeneric echo-command (host os))
+
+(defmethod echo-command ((host t) (os t))
+  "echo -n ")
+
+(defun echo_ (&rest parts)
+  (let* ((host (current-host))
+         (cmd (echo-command host (host-os host))))
+    (str cmd (sh-quote parts))))
+
+(defun echo (&rest parts)
+  (run (echo_ parts)))
+
+;;  Run as root
+
 (defgeneric run-as-root-command (host os))
 
 (defmethod run-as-root-command ((host t) (os os-unix))
@@ -135,7 +152,7 @@
 (defmethod op-file-content ((res file) (os os-unix) &key content)
   (sync (parent-directory res))
   (let ((id (resource-id res)))
-    (run "echo -n " (sh-quote content) " > " (sh-quote id))
+    (run (echo_ content) " > " (sh-quote id))
     (when-let (after (get-specified res :after))
       (funcall (the function after) res os))
     (clear-probed res)))
