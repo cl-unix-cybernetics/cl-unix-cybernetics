@@ -84,13 +84,37 @@
              (when home `("-d" ,(sh-quote home)))
              (when gid `("-g" ,(sh-quote gid)))
              (when login-class `("-L" ,(sh-quote login-class)))
-             (when groups `("-S" ,(join-str "," (mapcar #'sh-quote
+             (when groups `("-G" ,(join-str "," (mapcar #'sh-quote
                                                         groups))))
              (when shell `("-s" ,(sh-quote shell)))
              (when uid `("-u" ,(sh-quote uid)))
              (sh-quote (resource-id user)))))
 
 ;;  VNode
+
+(defgeneric vnode-owner (res))
+
+(defmethod vnode-owner ((res vnode))
+  (let ((owner-spec (get-specified res :owner)))
+    (when owner-spec
+      (resource 'user owner-spec))))
+  
+(defgeneric vnode-group (res))
+
+(defmethod vnode-group ((res vnode))
+  (let ((group-spec (get-specified res :group)))
+    (when group-spec
+      (resource 'user group-spec))))
+  
+(defgeneric sync-owner-and-group (res))
+
+(defmethod sync-owner-and-group ((res vnode))
+  (let ((owner (vnode-owner res))
+        (group (vnode-group res)))
+    (when group
+      (sync group))
+    (when owner
+      (sync owner))))
 
 (defmethod op-chown ((res vnode) (os os-unix) &key uid gid owner group
                                                 &allow-other-keys)
@@ -102,10 +126,10 @@
     (assert (= uid (get-probed owner :uid))))
   (when (and gid group)
     (assert (= gid (get-probed group :gid))))
-  (when owner
-    (sync owner))
   (when group
     (sync group))
+  (when owner
+    (sync owner))
   (let ((u (or (when owner (resource-id owner))
                uid))
         (g (or (when group (resource-id group))
@@ -118,6 +142,7 @@
 
 (defmethod op-chmod ((res vnode) (os os-unix) &key mode
                                                 &allow-other-keys)
+  (sync-owner-and-group res)
   (run "chmod " (octal (mode-permissions mode)) " "
        (sh-quote (resource-id res))))
 
@@ -141,6 +166,7 @@
     (resource 'directory parent-path)))
 
 (defmethod op-file-ensure ((res file) (os os-unix) &key ensure)
+  (sync-owner-and-group res)
   (sync (parent-directory res))
   (let* ((id (resource-id res))
          (sh-id (sh-quote id)))
@@ -150,6 +176,7 @@
       ((nil)))))
 
 (defmethod op-file-content ((res file) (os os-unix) &key content)
+  (sync-owner-and-group res)
   (sync (parent-directory res))
   (let ((id (resource-id res)))
     (run (echo_ content) " > " (sh-quote id))
@@ -161,6 +188,8 @@
 
 (defmethod op-directory-ensure ((res directory) (os os-unix)
                                 &key ensure)
+  (sync-owner-and-group res)
+  (sync (parent-directory res))
   (let* ((id (resource-id res))
          (sh-id (sh-quote id)))
     (ecase ensure
