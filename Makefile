@@ -1,7 +1,7 @@
 
 PROGRAM = build/adams
 PREFIX = /usr/local
-LISP = sbcl
+LISP = sbcl --dynamic-space-size 2048
 LISP_LOAD = ${LISP} --load
 
 all: ${PROGRAM}
@@ -18,7 +18,7 @@ ${PROGRAM}: build.lisp config.lisp build/systems.lisp toplevel.lisp
 clean:
 	rm -rf build/*
 
-install: ${PROGRAM}
+install:
 	install -m 0755 ${PROGRAM} ${PREFIX}/bin
 
 .PHONY: all clean deps install ${PROGRAM}

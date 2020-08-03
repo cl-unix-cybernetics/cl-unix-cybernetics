@@ -18,6 +18,12 @@
 
 (in-package :common-lisp-user)
 
+(declaim (optimize (speed 1)
+                   (space 1)
+                   (safety 3)
+                   (debug 3)
+                   (compilation-speed 0)))
+
 (defun compile-lisp (path)
   (let* ((fasl (make-pathname :type "fasl" :defaults path))
          (fasl (merge-pathnames fasl)))

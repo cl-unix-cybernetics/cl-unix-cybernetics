@@ -123,10 +123,17 @@
 
 (defmethod collect-sources :around ((x asdf:component))
   (let ((if-feature (asdf::component-if-feature x)))
-    (if if-feature
-        (when (find (the symbol if-feature) *features*)
-          (call-next-method))
-        (call-next-method))))
+    (etypecase if-feature
+      (null
+       (call-next-method))
+      (symbol
+       (when (find (the symbol if-feature) *features*)
+         (call-next-method)))
+      (cons
+       (cond ((string-equal 'not (first if-feature))
+              (unless (find (the symbol (second if-feature)) *features*)
+                (call-next-method)))
+             (t (error "Bad if-feature")))))))
 
 #+nil (collect-sources :adams)
 
