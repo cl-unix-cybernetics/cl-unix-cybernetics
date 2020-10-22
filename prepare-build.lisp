@@ -187,6 +187,7 @@
                (load-form `(load ,build-file)))
           (format t "~& ~A~%" sys) (force-output)
           (print load-form out)))
-      (fresh-line out))))
+      (fresh-line out)
+      (force-output out))))
 
 (write-build-systems-file :adams)
