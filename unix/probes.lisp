@@ -78,7 +78,7 @@
         (ensure :absent))
     (multiple-value-bind #1=(mode links owner group size mtime)
         (with-ls<1>-lT #.(cons 'name '#1#)
-            (ls "-ldT" (sh-quote id))
+            (ls "-ldT" id)
           (when (string= id name)
             (setq mode (mode (mode-permissions mode))
                   owner (resource 'user owner)
