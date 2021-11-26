@@ -75,7 +75,9 @@
   (resource-id (the host host)))
 
 (defun homedir (user &optional (host (current-host)))
-  (str (or (get-specified host :homedir) "/home")
+  (str (etypecase (host-os host)
+         (os-darwin "/Users")
+         (os "/home"))
        "/"
        (etypecase user
          (user (resource-id user))

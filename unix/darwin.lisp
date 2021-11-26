@@ -115,6 +115,7 @@
               groups (remove-if (lambda (x)
                                   (find (resource-id x)
                                         '("_lpoperator"
+                                          "com.apple.access_ssh"
                                           "com.apple.sharepoint.group.1"
                                           "com.apple.sharepoint.group.2"
                                           "everyone"
