@@ -20,7 +20,7 @@
 
 ;;  Group
 
-(defmethod probe-group-in-/etc/group ((group group) (os os-unix))
+(defmethod probe-group ((group group) (os os-unix))
   (let ((id (resource-id group))
         (ensure :absent))
     (multiple-value-bind #1=(name passwd gid members)
@@ -32,7 +32,7 @@
 
 ;;  User
 
-(defmethod probe-user-in-/etc/passwd ((user user) (os os-unix))
+(defmethod probe-user ((user user) (os os-unix))
   (let ((id (resource-id user))
         (ensure :absent))
     (multiple-value-bind #1=(login pass uid gid realname home shell)
@@ -46,7 +46,7 @@
           (return (values* #1#))))
       (properties* (ensure . #1#)))))
 
-(defmethod probe-user-groups-in-/etc/group ((user user) (os os-unix))
+(defmethod probe-user-groups ((user user) (os os-unix))
   (let ((id (resource-id user))
         groups)
     (unless (eq :absent (get-probed user :ensure))

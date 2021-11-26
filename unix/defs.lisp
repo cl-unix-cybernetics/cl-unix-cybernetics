@@ -21,21 +21,21 @@
 ;;  Group
 
 (define-resource-class group () ()
-  ((probe-group-in-/etc/group :properties (:ensure :name :passwd :gid :members)))
+  ((probe-group :properties (:ensure :name :passwd :gid :members)))
   ((op-update-group :properties (:ensure :gid))))
 
-(defgeneric probe-group-in-/etc/group (resource os))
+(defgeneric probe-group (resource os))
 (defgeneric op-update-group (resource os &key ensure gid))
 
 ;;  User
 
 (define-resource-class user (resource-container)
   ()
-  ((probe-user-in-/etc/passwd :properties (:ensure :login :uid :gid :realname
-                                                   :home :shell))
-   (probe-user-groups-in-/etc/group :properties (:groups)))
+  ((probe-user :properties (:ensure :login :uid :gid :realname
+                                    :home :shell))
+   (probe-user-groups :properties (:groups)))
   ((op-update-user :properties (:ensure :uid :gid :realname :home :shell
-                                        :login-class :groups))))
+                                :login-class :groups))))
 
 (defgeneric probe-user-in-/etc/passwd (resource os))
 (defgeneric probe-user-groups-in-/etc/group (resource os))
