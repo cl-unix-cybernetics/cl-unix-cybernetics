@@ -21,7 +21,7 @@
 (in-re-readtable)
 
 (defmethod echo-command ((host t) (os os-darwin))
-  "echo -E -n ")
+  "printf %s ")
 
 (defmethod probe-hostname ((host host) (os os-darwin))
   (list :hostname (run-1 "hostname -s")))
@@ -61,20 +61,31 @@
 (probe (resource 'group "dx") :gid)
 
 (defmethod probe-user ((user user) (os os-darwin))
-  (let ((id (resource-id user))
-        (ensure :absent)
-        (uid nil)
-        (gid nil))
+  (let* ((id (resource-id user))
+         (sh-id (sh-quote id))
+         (ensure :absent)
+         uid
+         gid
+         shell
+         home)
     (multiple-value-bind (out status)
-        (run "dscl . -read /Users/" (sh-quote id))
+        (run "dscl . -read /Users/" sh-id)
       (when (= 0 status)
         (setq ensure :present)
         (dolist (line out)
-          (re-bind "UniqueID: ([0-9]+)" (n) line
+          (re-bind #~|^UniqueID: ([0-9]+)| (n) line
             (setq uid (parse-number n)))
-          (re-bind "PrimaryGroupID: ([0-9]+)" (n) line
-            (setq gid (parse-number n)))))
-      (properties* ensure uid gid))))
+          (re-bind #~|^PrimaryGroupID: ([0-9]+)| (n) line
+            (setq gid (parse-number n)))
+          (re-bind #~|^UserShell: (/[^ \n]+)| (s) line
+            (setq shell s))
+          (re-bind #~|^NFSHomeDirectory: (/[^ \n]+)| (h) line
+            (setq home h)))))
+    (let ((realname (string-trim
+                     '(#\Space #\Newline)
+                     (second (run "dscl . -read /Users/" sh-id
+                                  " RealName")))))
+      (properties* ensure uid gid shell home realname))))
 
 #+nil
 (probe (resource 'user "root") :gid)
@@ -100,41 +111,81 @@
                                (remove (resource-id user-group)
                                        groups :key #'resource-id
                                               :test #'string=))
-                         groups))))
+                         groups)
+              groups (remove-if (lambda (x)
+                                  (find (resource-id x)
+                                        '("_lpoperator"
+                                          "com.apple.sharepoint.group.1"
+                                          "com.apple.sharepoint.group.2"
+                                          "everyone"
+                                          "localaccounts")
+                                        :test #'string=))
+                                groups))))
     (properties* groups)))
 
 #+nil
 (probe (resource 'user "root") :groups)
 
-(defmethod op-update-group ((group group) (os os-unix) &key ensure gid)
-  (run-as-root
-   (join-str " "
-             (ecase ensure
-               ((:absent)  "groupdel")
-               ((:present) "groupadd")
-               ((nil)      "groupmod"))
-             (when gid `("-g" ,(sh-quote gid)))
-             (sh-quote (resource-id group)))))
+(defmethod op-update-group ((group group) (os os-darwin) &key ensure gid)
+  (let ((id (resource-id group)))
+    (run-as-root
+     (join-str
+      " "
+      "dscl ." 
+      (ecase ensure
+        ((:absent)  "-delete")
+        ((:present) "-create")
+        ((nil)      "-change"))
+      (str "/Groups/" (sh-quote id))
+      (when gid
+        `("PrimaryGroupID"
+          ,(unless ensure
+             (sh-quote (get-probed group :gid)))
+          ,(sh-quote gid)))))))
 
-(defmethod op-update-user ((user user) (os os-unix)
+(defmethod op-update-user ((user user) (os os-darwin)
                            &key ensure uid gid realname home shell
                              login-class groups)
+  (declare (ignore login-class))
   (sync-groups)
-  (run-as-root
-   (join-str " "
-             (ecase ensure
-               ((:absent)  "userdel")
-               ((:present) "dscl -create")
-               ((nil)      "usermod"))
-             (when realname `("-c" ,(sh-quote realname)))
-             (when home `("-d" ,(sh-quote home)))
-             (when gid `("-g" ,(sh-quote gid)))
-             (when login-class `("-L" ,(sh-quote login-class)))
-             (when groups `("-G" ,(join-str "," (mapcar #'sh-quote
-                                                        groups))))
-             (when shell `("-s" ,(sh-quote shell)))
-             (when uid `("-u" ,(sh-quote uid)))
-             (sh-quote (resource-id user)))))
+  (let* ((id (resource-id user))
+         (sh-id (sh-quote id)))
+    (when ensure
+      (run-as-root
+       "dscl . "
+       (ecase ensure
+         ((:absent)  "-delete ")
+         ((:present) "-create "))
+       (str "/Users/" sh-id)))
+    (when uid
+      (run-as-root
+       "dscl . -create /Users/" sh-id
+       " UniqueID "
+       (sh-quote uid)))
+    (when gid
+      (run-as-root
+       "dscl . -create /Users/" sh-id
+       " PrimaryGroupID "
+       (sh-quote gid)))
+    (when home
+      (run-as-root
+       "dscl . -create /Users/" sh-id
+       " NFSHomeDirectory "
+       (sh-quote home)))
+    (when shell
+      (run-as-root
+       "dscl . -create /Users/" sh-id
+       " UserShell "
+       (sh-quote shell)))
+    (dolist (group (get-probed user :groups))
+      (unless (find (resource-id group) groups)
+        (run-as-root
+         "dscl . -delete /Groups/" (sh-quote (resource-id group))
+         " GroupMembership " sh-id)))
+    (dolist (group groups)
+      (run-as-root
+       "dscl . -append /Groups/" (sh-quote group)
+       " GroupMembership " sh-id))))
 
 #+nil
 (clear-resources)

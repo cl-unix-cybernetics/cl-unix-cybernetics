@@ -74,6 +74,21 @@
 (defun hostname (&optional (host (current-host)))
   (resource-id (the host host)))
 
+(defun homedir (user &optional (host (current-host)))
+  (str (or (get-specified host :homedir) "/home")
+       "/"
+       (etypecase user
+         (user (resource-id user))
+         (string user))))
+
+(defgeneric probe-host-homedir (host os))
+
+(defmethod probe-host-homedir (host (os os-unix))
+  '(:homedir "/home"))
+
+(defmethod probe-host-homedir (host (os os-darwin))
+  '(:homedir "/Users"))
+
 ;;  Host shell
 
 (defmethod host-shell ((host host))

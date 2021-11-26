@@ -195,6 +195,7 @@
    (probe-host-locale :properties (:locale))
    (probe-host-packages :properties (:packages))
    (probe-boot-time :properties (:boot-time))
+   (probe-host-homedir :properties (:homedir))
    (probe-host-user :properties (:user))
    (probe-hostname :properties (:hostname)))
   ((op-host-locale :properties (:locale))
@@ -261,3 +262,7 @@
   `(loop
       (unless (remf ,place ,indicator)
         (return))))
+
+;;  Shebang
+
+(set-dispatch-macro-character #\# #\! #'read-line)

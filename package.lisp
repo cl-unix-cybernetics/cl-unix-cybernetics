@@ -115,6 +115,7 @@
    #:resource-diff
    ;;  Host
    #:current-host
+   #:homedir
    #:host
    #:host-connect
    #:host-disconnect
