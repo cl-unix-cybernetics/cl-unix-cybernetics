@@ -78,7 +78,13 @@
    (join-str " "
              (ecase ensure
                ((:absent)  "userdel")
-               ((:present) "useradd -m")
+               ((:present) `("useradd"
+                             ,(unless (eq :present
+                                          (get-probed
+                                           (resource 'directory (homedir
+                                                                 user))
+                                           :ensure))
+                                "-m")))
                ((nil)      "usermod"))
              (when realname `("-c" ,(sh-quote realname)))
              (when home `("-d" ,(sh-quote home)))
