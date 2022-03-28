@@ -163,10 +163,11 @@
   (let (dependencies)
     (labels ((dfs (name)
                (let ((sys (asdf:find-system name)))
-                 (when sys
+                 (when (and sys (not (find sys dependencies)))
                    (locally (declare (type asdf:system sys))
+                     (format t "~& ~A" sys) (force-output)
                      (map 'nil #'dfs (asdf:system-depends-on sys))
-                     (pushnew sys dependencies))))))
+                     (push sys dependencies))))))
       (dfs name)
       (nreverse dependencies))))
 
