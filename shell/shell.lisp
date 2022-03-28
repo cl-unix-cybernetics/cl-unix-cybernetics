@@ -137,7 +137,7 @@ Error: ~S"
     (shell-in (format nil " ; echo \"~%~A $?\"~%" delim) shell)
     (let* ((prev nil)
            (status
-            (loop (let ((line (the string (shell-out/line shell))))
+            (loop (let ((line (shell-out/line shell)))
                     (when (or (null line)
                               (and (< len (length line))
                                    (string= delim line :end2 len)))
@@ -160,7 +160,7 @@ Error: ~S"
 	  (shell-log shell "| ~A~%" line))
 	(dolist (line err)
 	  (shell-log shell "# ~A~&" line))
-        (unless (= 0 status)
+        (unless (and status (= 0 status))
           (shell-log shell   " ⇒ ~D~%" status)))
       (values status out err))))
 
