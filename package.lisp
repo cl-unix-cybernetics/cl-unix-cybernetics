@@ -146,6 +146,7 @@
    #:ssh-authorized-key
    #:stat
    #:stat<1>
+   #:symlink
    #:+timestamp-offset+
    #:timestamp-to-universal-time
    #:universal-time-to-timestamp

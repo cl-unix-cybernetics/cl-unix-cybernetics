@@ -76,10 +76,10 @@
 (defmethod probe-vnode-using-ls ((vnode vnode) (os os-unix))
   (let ((id (resource-id vnode))
         (ensure :absent))
-    (multiple-value-bind #1=(mode links owner group size mtime)
+    (multiple-value-bind #1=(mode links owner group size mtime target)
         (with-ls<1>-lT #.(cons 'name '#1#)
             (ls "-ldT" id)
-          (when (string= id name)
+          (when (string= id (the string name))
             (setq mode (mode (mode-permissions mode))
                   owner (resource 'user owner)
                   group (resource 'group group)
@@ -143,6 +143,14 @@
                         (str (run "cat " (sh-quote (resource-id file))))
                         :file-too-large))))
     (properties* content)))
+
+;;  Symlink
+
+(defmethod probe-symlink-target ((symlink symlink) (os os-unix))
+  (let ((target (string-trim '(#\Newline)
+                             (run "readlink "
+                                  (sh-quote (resource-id symlink))))))
+    (properties* target)))
 
 ;;  Directory
 

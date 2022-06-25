@@ -32,6 +32,11 @@
 (adams:clear-resources)
 (adams:clear-probed)
 
+(resource 'symlink "/home/dx/test-symlink"
+          :owner "dx"
+          :group "dx"
+          :target "../test")
+
 (resource 'host "ams.kmx.io"
           :user "root"
           :hostname "ams"

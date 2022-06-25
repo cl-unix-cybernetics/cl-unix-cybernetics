@@ -41,10 +41,11 @@
 			 group
 			 (#'sh-parse-integer size)
 			 (#'chronicity:parse time)
-			 name)
-  #~|^([-a-zA-Z]{10})\s+([0-9]+)\s+(\S+)\s+(\S+)\s+([0-9]+)\s+(\S+\s+\S+ \S+ \S+)\s+(.+)$|
+			 name
+                         target)
+  #~|^([-a-zA-Z]{10})\s+([0-9]+)\s+(\S+)\s+(\S+)\s+([0-9]+)\s+(\S+\s+\S+ \S+ \S+)\s+(.+?)(?: -> (.*))?$|
   "Syntax for `ls -lT` output. See ls(1)."
-  (values name mode links owner group size time))
+  (values name mode links owner group size time target))
 
 (define-syntax stat<1>-r ((#'sh-parse-integer
 			   dev ino mode links uid gid rdev size)

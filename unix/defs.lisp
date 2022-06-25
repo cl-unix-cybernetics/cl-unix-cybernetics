@@ -94,6 +94,19 @@
 (defgeneric op-file-ensure (resource os &key ensure))
 (defgeneric op-file-content (resource os &key content))
 
+;;  Symbolic link
+
+(define-resource-class symlink (vnode)
+  ()
+  ((probe-symlink-target :properties (:target)))
+  ((op-symlink-ensure :properties (:ensure))
+   (op-symlink-target :properties (:target)))
+  ((:op-properties (:ensure :target))))
+
+(defgeneric probe-symlink-target (resource os))
+(defgeneric op-symlink-ensure (resource os &key ensure))
+(defgeneric op-symlink-target (resource os &key target))
+
 ;;  Directory
 
 (define-resource-class directory (vnode)

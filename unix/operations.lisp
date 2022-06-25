@@ -190,6 +190,28 @@
       (funcall (the function after) res os))
     (clear-probed res)))
 
+;;  Symlink
+
+(defmethod op-symlink-ensure ((res symlink) (os os-unix)
+                              &key ensure)
+  (sync-owner-and-group res)
+  (sync (parent-directory res))
+  (let* ((id (resource-id res))
+         (sh-id (sh-quote id))
+         (target (get-specified res :target))
+         (sh-target (sh-quote target)))
+    (ecase ensure
+      ((:absent) (run "rm " sh-id))
+      ((:present) (run "ln -s " sh-target " " sh-id))
+      ((nil)))))
+
+(defmethod op-symlink-target ((res symlink) (os os-unix)
+                              &key target)
+  (let* ((id (resource-id res))
+         (sh-id (sh-quote id))
+         (sh-target (sh-quote target)))
+    (run "ln -sf " sh-target " " sh-id)))
+
 ;;  Directory
 
 (defmethod op-directory-ensure ((res directory) (os os-unix)
