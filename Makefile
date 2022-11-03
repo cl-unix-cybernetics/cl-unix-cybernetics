@@ -1,3 +1,6 @@
+## Adams - UNIX system administration tool written in Common Lisp
+## Copyright 2013-2022 Thomas de Grivel <thodg@kmx.io>
+
 PACKAGE = adams
 VERSION = 0.3.2
 RELEASE_DIR = ${PACKAGE}-${VERSION}
