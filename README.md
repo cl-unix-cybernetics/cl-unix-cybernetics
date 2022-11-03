@@ -146,17 +146,7 @@ In your main script :
 ---------------------
 
 
-Contribute
-----------
-
-To contribute, fork this repository and send us a pull request.
-
-Please publish under the
-[ISC License](https://en.wikipedia.org/wiki/ISC_license)
-terms.
-
-
 Authors
 -------
 
-Thomas de Grivel <thoxdg@gmail.com>
+Thomas de Grivel <thodg@kmx.io>
