@@ -148,8 +148,8 @@
 
 (defmethod probe-symlink-target ((symlink symlink) (os os-unix))
   (let ((target (string-trim '(#\Newline)
-                             (run "readlink "
-                                  (sh-quote (resource-id symlink))))))
+                             (run-1 "readlink "
+                                    (sh-quote (resource-id symlink))))))
     (properties* target)))
 
 ;;  Directory
