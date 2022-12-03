@@ -7,6 +7,7 @@
   (let ((*package* (find-package :adams-user)))
     (sb-impl::toplevel-init)))
 
-(sb-ext:save-lisp-and-die #P"~/common-lisp/cl-adams/adams/build/adams"
-                          :toplevel #'adams-toplevel
-                          :executable t)
+(defun build (path)
+  (sb-ext:save-lisp-and-die path
+                            :toplevel #'cl-unix-cybernetics-toplevel
+                            :executable t))

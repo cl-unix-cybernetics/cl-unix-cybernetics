@@ -9,14 +9,6 @@ The properties are then probed and synchronized by Adams using only
 `/bin/sh` on the remote host, and `/usr/bin/ssh` on the control host.
 
 
-Configuration example
----------------------
-
-Check out
-<https://github.com/kmx-io/kmx-io/>
-for a detailed example of Adams usage.
-
-
 Current status
 --------------
 

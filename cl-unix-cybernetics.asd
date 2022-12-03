@@ -1,16 +1,16 @@
-;; Adams - UNIX system administration tool written in Common Lisp
+;; cl-unix-cybernetics
 ;; Copyright 2013-2022 Thomas de Grivel <thodg@kmx.io>
 
-(defpackage :adams.system
+(defpackage :cl-unix-cybernetics.system
   (:use :cl :asdf))
 
-(in-package :adams.system)
+(in-package :cl-unix-cybernetics.system)
 
-(defsystem :adams
-  :name "adams"
-  :author "Thomas de Grivel <thoxdg@gmail.com>"
+(defsystem :cl-unix-cybernetics
+  :name "cl-unix-cybernetics"
+  :author "Thomas de Grivel <thodg@kmx.io>"
   :version "0.1"
-  :description "Remote system administration tools"
+  :description "UNIX cybernetics in Common Lisp"
   :depends-on ("alexandria"
 	       "chronicity"
 	       "cl-base64"
