@@ -1,7 +1,17 @@
-;; Adams - UNIX system administration tool written in Common Lisp
+;; cl-unix-cybernetics
 ;; Copyright 2013-2022 Thomas de Grivel <thodg@kmx.io>
+;;
+;; Permission is hereby granted to use this software granted
+;; the above copyright notice and this permission paragraph
+;; are included in all copies and substantial portions of this
+;; software.
+;;
+;; THIS SOFTWARE IS PROVIDED "AS-IS" WITHOUT ANY GUARANTEE OF
+;; PURPOSE AND PERFORMANCE. IN NO EVENT WHATSOEVER SHALL THE
+;; AUTHOR BE CONSIDERED LIABLE FOR THE USE AND PERFORMANCE OF
+;; THIS SOFTWARE.
 
-(in-package :adams)
+(in-package :cl-unix-cybernetics)
 
 ;;  Misc
 
@@ -132,16 +142,16 @@
 	      :reader resource-registry))
   (:metaclass resource-class))
 
-(defvar *adams*
-  (make-instance 'resource-container :id "Adams"))
+(defvar *cl-unix-cybernetics*
+  (make-instance 'resource-container :id "cl-unix-cybernetics"))
 
 (defvar *parent-resource*
-  *adams*)
+  *cl-unix-cybernetics*)
 
 (defgeneric clear-resources% (resource-container))
 
 (defmacro with-parent-resource (resource &body body)
-  `(let ((*parent-resource* ,(or resource '*adams*)))
+  `(let ((*parent-resource* ,(or resource '*cl-unix-cybernetics*)))
      ,@body))
 
 (defgeneric resource-before-p (r1 r2))

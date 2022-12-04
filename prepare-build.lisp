@@ -1,5 +1,15 @@
-;; Adams - UNIX system administration tool written in Common Lisp
+;; cl-unix-cybernetics
 ;; Copyright 2013-2022 Thomas de Grivel <thodg@kmx.io>
+;;
+;; Permission is hereby granted to use this software granted
+;; the above copyright notice and this permission paragraph
+;; are included in all copies and substantial portions of this
+;; software.
+;;
+;; THIS SOFTWARE IS PROVIDED "AS-IS" WITHOUT ANY GUARANTEE OF
+;; PURPOSE AND PERFORMANCE. IN NO EVENT WHATSOEVER SHALL THE
+;; AUTHOR BE CONSIDERED LIABLE FOR THE USE AND PERFORMANCE OF
+;; THIS SOFTWARE.
 
 (in-package :common-lisp-user)
 
@@ -26,7 +36,7 @@
     (pathname (namestring x))
     (string x)))
 
-(defparameter *dir* (namestring* (system-file :adams "")))
+(defparameter *dir* (namestring* (system-file :cl-unix-cybernetics "")))
 
 (defgeneric collect-sources (x))
 
@@ -77,13 +87,13 @@
         dir)))
 
 (defun dependency-path (src)
-  (let* ((adams-dir *dir*)
+  (let* ((cl-unix-cybernetics-dir *dir*)
          (path (pathname src))
          (dir (pathname-directory path))
          (name (pathname-name path))
          (type (pathname-type path)))
     (with-output-to-string (out)
-      (write-string adams-dir out)
+      (write-string cl-unix-cybernetics-dir out)
       (write-string "build/" out)
       (let ((dir (strip-common-lisp-directory dir)))
         (dolist (d (rest dir))
@@ -120,7 +130,7 @@
                 (call-next-method)))
              (t (error "Bad if-feature")))))))
 
-#+nil (collect-sources :adams)
+#+nil (collect-sources :cl-unix-cybernetics)
 
 (defun write-system-build-file (system sbf)
   (format t "~&~A~%" sbf) (force-output)
@@ -176,4 +186,4 @@
       (fresh-line out)
       (force-output out))))
 
-(write-build-systems-file :adams)
+(write-build-systems-file :cl-unix-cybernetics)

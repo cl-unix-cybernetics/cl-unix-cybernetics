@@ -1,9 +1,19 @@
-;; Adams - UNIX system administration tool written in Common Lisp
+;; cl-unix-cybernetics
 ;; Copyright 2013-2022 Thomas de Grivel <thodg@kmx.io>
+;;
+;; Permission is hereby granted to use this software granted
+;; the above copyright notice and this permission paragraph
+;; are included in all copies and substantial portions of this
+;; software.
+;;
+;; THIS SOFTWARE IS PROVIDED "AS-IS" WITHOUT ANY GUARANTEE OF
+;; PURPOSE AND PERFORMANCE. IN NO EVENT WHATSOEVER SHALL THE
+;; AUTHOR BE CONSIDERED LIABLE FOR THE USE AND PERFORMANCE OF
+;; THIS SOFTWARE.
 
 (in-package :cl-user)
 
-(defpackage :adams
+(defpackage :cl-unix-cybernetics
   (:use
    :alexandria
    :common-lisp
@@ -13,7 +23,7 @@
    :str)
   (:shadow #:directory #:get-properties)
   (:export
-   #:*adams*
+   #:*cl-unix-cybernetics*
    #:*host*
    ;;  Shell
    #:*default-shell-command*
@@ -147,8 +157,8 @@
    #:str
    ))
 
-(defpackage :adams-user
-  (:use :adams :cl :cl-debug :re)
-  (:shadowing-import-from :adams #:directory))
+(defpackage :cl-unix-cybernetics-user
+  (:use :cl-unix-cybernetics :cl :cl-debug :re)
+  (:shadowing-import-from :cl-unix-cybernetics #:directory))
 
-(setf (symbol-function 'adams::directory) #'cl:directory)
+(setf (symbol-function 'cl-unix-cybernetics::directory) #'cl:directory)

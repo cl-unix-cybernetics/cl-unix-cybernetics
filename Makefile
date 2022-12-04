@@ -18,11 +18,11 @@ all: ${PROGRAM}
 deps:
 	LANG=C.UTF-8 ${LISP_LOAD} prepare-build.lisp --quit
 
-build/systems.lisp: prepare-build.lisp adams.asd
+build/systems.lisp: prepare-build.lisp cl-unix-cybernetics.asd
 	LANG=C.UTF-8 ${LISP_LOAD} prepare-build.lisp --quit
 
 ${PROGRAM}: build.lisp config.lisp build/systems.lisp toplevel.lisp
-	LANG=C.UTF-8 ${LISP_LOAD} build.lisp --eval '(build "${PROGRAM}")' --quit
+	LANG=C.UTF-8 ${LISP_LOAD} build.lisp --eval '(build #P"${PROGRAM}")' --quit
 
 install:
 	install -m 0755 ${PROGRAM} ${PREFIX}/bin

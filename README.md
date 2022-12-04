@@ -1,23 +1,21 @@
-Adams 0.3.2
-===========
+cl-unix-cybernetics 0.3.3
+=========================
 
-Adams is a UNIX system administration tool written in Common Lisp.
+UNIX cybernetics in Common Lisp.
 
 You describe your systems (hosts) using resources having properties.
 
-The properties are then probed and synchronized by Adams using only
+The properties are then probed and synchronized using only
 `/bin/sh` on the remote host, and `/usr/bin/ssh` on the control host.
 
 
 Current status
 --------------
 
-Adams is currently able to use a local shell or connect to remote hosts
-via ssh.
+There is support for local shell and connection to remote hosts via ssh.
 
-Adams is this hardcore hacker using only `/bin/sh` commands.
-This makes `ksh` and `bash` suitable shells for adams as they are
-compatible with `/bin/sh`.
+Using only `/bin/sh` commands makes `ksh` and `bash` suitable shells as
+they are compatible with `/bin/sh`.
 
 Supported resource types :
  - Host (hostname)
@@ -31,16 +29,16 @@ Supported resource types :
 Security design
 ---------------
 
-You should only allow Adams what you would allow your system operators :
+You should only allow what you would allow your system operators :
   - a shell accessible through SSH using a public key
   - apropriate sudo permissions
 
 All commands issued to the remote hosts can be logged.
 
-Adams does not grant the hosts access to its workstation while it works.
-Adams does not grant access to data belonging to any host.
-Adams does not send any data that is not of direct concern to the host.
-In short, all UNIX permissions are respected, Adams is a regular UNIX user.
+Does not grant the hosts access to its workstation while it works.
+Does not grant access to data belonging to any host.
+Does not send any data that is not of direct concern to the host.
+In short, all UNIX permissions are respected.
 
 
 Usage
@@ -50,44 +48,35 @@ Usage
 ### 1. Install [repo](https://github.com/common-lisp-repo/repo).
 
 
-### 2. Fetch adams sources.
+### 2. Fetch sources.
 
 ``` shell
-  $ sbcl --eval '(repo:install :adams)'
+  $ sbcl --eval '(repo:install :cl-unix-cybernetics)'
 ```
 
 
-### 3. Build and install the `adams` binary
+### 3. Build and install the `cl-unix-cybernetics` binary
 
 ``` shell
-  $ cd ~/common-lisp/cl-adams/adams
+  $ cd ~/common-lisp/thodg/cl-unix-cybernetics
   $ make
-  $ sudo cp build/adams /usr/local/bin/adams
+  $ sudo cp build/cl-unix-cybernetics /usr/local/bin/
 ```
 
 
-### 4. Configure emacs (optional)
+### 4. Write some resources in a `.lisp` script
 
-In your `~/.emacs` file :
-``` emacs-lisp
-  ;;  Adams
-  (add-to-list 'auto-mode-alist '("\\.adams\\'" . lisp-mode))
-```
-
-
-### 5. Write some resources in a `.adams` script
-
-In the `tutorial.adams` file :
+In the `tutorial.lisp` file :
 ``` common-lisp
-  #!/usr/local/bin/adams --script
+  #!/usr/local/bin/cl-unix-cybernetics --script
 
-  (resource 'host "adams.kmx.io"
-            :user "adams"
-            (resource 'user "adams"
+  (resource 'host "example.kmx.io"
+            :user "sysadm"
+            (resource 'user "sysadm"
                       :shell "/bin/sh"
                       :ensure :present))
 
-  (with-host "adams.kmx.io"
+  (with-host "example.kmx.io"
     (sync *host*))
 ```
 
@@ -95,17 +84,17 @@ In the `tutorial.adams` file :
 ### 6. Profit.
 
 ``` shell
-  $ chmod 755 tutorial.adams
-  $ ./tutorial.adams
+  $ chmod 755 tutorial.lisp
+  $ ./tutorial.lisp
 ```
 
-The `tutorial.adams` script will synchronize the host "adams.kmx.io"
+The `tutorial.lisp` script will synchronize the host "example.kmx.io"
 according to the resource specifications given in the file.
 
 
 ### 7. DRY up your scripts using `#.(include "file")`
 
-In the `user/dx.adams` file :
+In the `user/dx.lisp` file :
 ``` common-lisp
   ;; Thomas de Grivel (kmx.io)
   (resource 'group "dx"
@@ -120,18 +109,25 @@ In the `user/dx.adams` file :
 
 In your main script :
 ``` common-lisp
-  #!/usr/local/bin/adams --script
+  #!/usr/local/bin/cl-unix-cybernetics --script
 
-  (resource 'host "adams.kmx.io"
-            :user "adams"
-            (resource 'user "adams"
+  (resource 'host "example.kmx.io"
+            :user "admin"
+            (resource 'user "admin"
                       :shell "/bin/sh"
                       :ensure :present)
             #.(include "user/dx"))
 
-  (with-host "adams.kmx.io"
+  (with-host "example.kmx.io"
     (sync *host*))
 ```
+
+
+History
+-------
+
+This project used to be named "Adams".
+It was renamed in 2022 to "cl-unix-cybernetics".
 
 
 [License](LICENSE.md)
