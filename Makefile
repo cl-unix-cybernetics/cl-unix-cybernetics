@@ -18,7 +18,7 @@ all: ${PROGRAM}
 deps:
 	LANG=C.UTF-8 ${LISP_LOAD} prepare-build.lisp --quit
 
-build/systems.lisp: prepare-build.lisp cl-unix-cybernetics.asd
+build/systems.lisp:
 	LANG=C.UTF-8 ${LISP_LOAD} prepare-build.lisp --quit
 
 ${PROGRAM}: build.lisp config.lisp build/systems.lisp toplevel.lisp
@@ -43,4 +43,4 @@ clean:
 distclean:
 	rm -rf ${DISTCLEANFILES}
 
-.PHONY: all clean deps install ${PROGRAM} release
+.PHONY: all build/systems.lisp clean deps install ${PROGRAM} release

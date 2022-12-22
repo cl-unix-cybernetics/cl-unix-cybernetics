@@ -18,7 +18,7 @@
            (let ((path (str parts)))
              (when (probe-file path)
                (return-from include/resolve-filename path)))))
-    (try spec ".cl-unix-cybernetics")
+    (try spec ".lisp")
     (try spec)))
 
 (defun include/resolve-filename! (spec)

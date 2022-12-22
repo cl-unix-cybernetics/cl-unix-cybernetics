@@ -148,9 +148,9 @@
   (let* ((asd (asdf:system-source-file system))
          (name (substitute #\- #\/ (asdf:component-name system)))
          (sbf (concatenate 'string "build/" name ".lisp")))
-    (unless (and (probe-file sbf)
-                 (<= (file-write-date asd)
-                     (file-write-date sbf)))
+    (when (or (not (probe-file sbf))
+              (< (file-write-date sbf)
+                 (file-write-date asd)))
       (write-system-build-file system sbf))
     sbf))
 
