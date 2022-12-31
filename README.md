@@ -1,4 +1,4 @@
-cl-unix-cybernetics 0.3.3
+cl-unix-cybernetics 0.3.4
 =========================
 
 UNIX cybernetics in Common Lisp.
