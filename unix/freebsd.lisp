@@ -61,6 +61,7 @@
                                                          realname home shell
                                                          login-class
                                                          groups)
+  (sync-groups)
   (run-as-root
    (join-str " "
              (ecase ensure

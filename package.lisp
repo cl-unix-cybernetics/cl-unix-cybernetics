@@ -95,6 +95,7 @@
    #:os-linux-debian
    #:os-machine
    #:os-name
+   #:os-netbsd
    #:os-openbsd
    #:os-release
    #:os-unix

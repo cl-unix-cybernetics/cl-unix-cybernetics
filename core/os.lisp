@@ -46,6 +46,7 @@
 
 (defclass os-bsd (os-unix) ())
 (defclass os-freebsd (os-bsd) ())
+(defclass os-netbsd (os-bsd) ())
 (defclass os-openbsd (os-bsd) ())
 (defclass os-darwin (os-bsd) ())
 

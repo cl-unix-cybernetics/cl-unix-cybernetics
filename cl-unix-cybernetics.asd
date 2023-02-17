@@ -62,6 +62,7 @@
 	     (:file "linux" :depends-on ("commands" "defs"))
 	     (:file "openbsd" :depends-on ("commands" "defs"))
 	     (:file "freebsd" :depends-on ("commands" "defs"))
+	     (:file "netbsd" :depends-on ("commands" "defs"))
 	     (:file "darwin" :depends-on ("commands" "defs"))
 	     (:file "operations" :depends-on ("commands" "defs"))
 	     (:file "probes"  :depends-on ("commands" "defs"
