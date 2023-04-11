@@ -60,7 +60,8 @@
        (loop (when (endp ,resources) (return))
           (let ((,var (pop ,resources)))
             (declare (type resource ,var))
-            ,@body)))))
+            (when ,var
+              ,@body))))))
 
 (defmethod print-object ((rc resource-container) stream)
   (print-unreadable-object (rc stream :type t :identity (not *print-pretty*))
