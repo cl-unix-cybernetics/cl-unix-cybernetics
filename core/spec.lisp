@@ -136,7 +136,7 @@ Second value lists properties in line with spec. Format is
            (push specified properties))))))
 
 (defmethod resource-diff ((res resource))
-  (let* ((specified-properties (specified-properties res))
+  (let* ((specified-properties (remove-if #'null (specified-properties res)))
          (properties (diffable-properties specified-properties))
          diff)
     (loop
