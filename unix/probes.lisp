@@ -119,9 +119,9 @@
         (push `(defmethod ,name ((file file) (os os-unix))
                  (let* ((id (resource-id file))
                         (,var (,iterator ,vars
-                                         (run ,cmd (sh-quote id)))
-                          (when ,match-p
-                            (return sum))))
+                                         (run ,cmd (sh-quote id))
+                                         (when ,match-p
+                                           (return sum)))))
                    (properties* ,var)))
               *cksum-defs*)
         (push `(defgeneric ,name (file os)) *cksum-defs*)))

@@ -52,6 +52,7 @@
 	     (:file "properties" :depends-on ("defs"))
 	     (:file "resource"   :depends-on ("defs" "probe"))
 	     (:file "resource-container" :depends-on ("defs"))
+             (:file "run" :depends-on ("defs" "host"))
 	     (:file "spec"       :depends-on ("defs" "resource"))
              (:file "syntaxes")))
    (:module "unix" :depends-on ("package" "shell" "core")

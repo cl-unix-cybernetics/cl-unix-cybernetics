@@ -38,7 +38,7 @@
 			 (#'chronicity:parse time)
 			 name
                          target)
-  #~|^([-a-zA-Z]{10})\s+([0-9]+)\s+(\S+)\s+(\S+)\s+([0-9]+)\s+(\S+\s+\S+ \S+ \S+)\s+(.+?)(?: -> (.*))?$|
+  #~|^([^\s]+)\s+([0-9]+)\s+(\S+)\s+(\S+)\s+([0-9]+)\s+(\S+\s+\S+ \S+ \S+)\s+(.+?)(?: -> (.*))?$|
   "Syntax for `ls -lT` output. See ls(1)."
   (values name mode links owner group size time target))
 

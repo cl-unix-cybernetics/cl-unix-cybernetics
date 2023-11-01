@@ -28,19 +28,6 @@
 (defun echo (&rest parts)
   (run (echo_ parts)))
 
-;;  Run as root
-
-(defgeneric run-as-root-command (host os))
-
-(defmethod run-as-root-command ((host t) (os os-unix))
-  "sudo ")
-
-(defun run-as-root (&rest command)
-  (let* ((host (current-host))
-         (prefix (unless (equal "root" (get-probed host :user))
-                   (run-as-root-command host (get-probed host :os)))))
-    (apply #'run prefix command)))
-
 ;;  Host operations
 
 (defmethod op-hostname ((host host) (os os-unix) &key hostname)

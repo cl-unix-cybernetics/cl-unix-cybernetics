@@ -13,10 +13,6 @@
 
 (in-package :cl-unix-cybernetics)
 
-(defun run (&rest command)
-  "Run a command at the current host. COMMAND is assembled using STR."
-  (apply #'host-run (current-host) command))
-
 (defun strip-last-newline (string)
   (when (stringp string)
     (let* ((len (length string))
