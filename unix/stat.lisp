@@ -85,11 +85,10 @@
   (octal (mode-fixnum mode)))
 
 (defun parse-mode-string (s)
-  (let ((type (when (= 10 (length s))
-                (let ((c (char s 0)))
-                  (setq s (subseq s 1))
-                  (or (find c +stat-mode-types+ :key #'cadr :test #'char=)
-                      (error "Unknown mode type : ~C" c))))))
+  (let ((type (let ((c (char s 0)))
+                (find c +stat-mode-types+ :key #'second :test #'char=))))
+    (when type
+      (setq s (subseq s 1)))
     (make-instance
      'mode :fixnum
      (logior
