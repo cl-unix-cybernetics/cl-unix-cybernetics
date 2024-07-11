@@ -106,6 +106,7 @@
 
 (defmethod op-chown ((res vnode) (os os-unix) &key uid gid owner group
                                                 &allow-other-keys)
+  (declare (type (or resource string null) owner group))
   (when (stringp owner)
     (setq owner (resource 'user owner)))
   (when (stringp group)
@@ -118,10 +119,13 @@
     (sync group))
   (when owner
     (sync owner))
-  (let ((u (or (when owner (resource-id owner))
+  (let ((u (if owner
+               (resource-id owner)
                uid))
-        (g (or (when group (resource-id group))
+        (g (if group
+               (resource-id group)
                gid)))
+    (declare (type string u g))
     (run "chown "
          (sh-quote u)
          (when g `(":" ,(sh-quote g)))

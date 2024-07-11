@@ -34,9 +34,10 @@
   (list :packages ()))
 
 (defmethod op-host-packages ((host host) (os os-darwin) &key packages)
+  (declare (ignore packages))
   nil)
 
-(defmethod op-hostname ((host host) (os os-unix) &key hostname)
+(defmethod op-hostname ((host host) (os os-darwin) &key hostname)
   (run-as-root "hostname -s " (sh-quote hostname)))
 
 (defmethod probe-group ((group group) (os os-darwin))
@@ -142,7 +143,7 @@
 (defmethod op-update-user ((user user) (os os-darwin)
                            &key ensure uid gid realname home shell
                              login-class groups)
-  (declare (ignore login-class))
+  (declare (ignore login-class realname))
   (sync-groups)
   (let* ((id (resource-id user))
          (sh-id (sh-quote id)))

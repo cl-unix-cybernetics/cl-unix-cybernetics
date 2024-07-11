@@ -53,6 +53,8 @@
           :initform nil
           :reader operations-before)))
 
+(declaim (ftype (function (operation) (values function &optional))
+                operation-generic-function))
 (defgeneric operation-generic-function (op))
 
 ;;  Resource metaclass
@@ -119,7 +121,8 @@
 		      :accessor probed-properties))
   (:metaclass resource-class))
 
-(declaim (ftype (function (resource) string) resource-id))
+(declaim (ftype (function (resource) (values string &optional))
+                resource-id))
 
 (defgeneric resource-additional-specs (resource os))
 (defgeneric resource-probes-properties (resource))

@@ -15,9 +15,6 @@
 
 ;;  Operation methods
 
-(declaim (ftype (function (operation) function) operation-generic-function))
-(defgeneric operation-generic-function (operation))
-
 (defmethod operation-generic-function ((op operation))
   (symbol-function (operation-name op)))
 
