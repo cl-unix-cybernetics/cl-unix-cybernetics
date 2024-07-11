@@ -37,6 +37,7 @@
 	    (/ (length (probed-properties r)) 2))))
 
 (defun make-resource (type id &rest initargs &key &allow-other-keys)
+  (declare (type string id))
   (apply #'make-instance type :id id initargs))
 
 (defun resource-type (resource)

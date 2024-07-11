@@ -78,6 +78,7 @@
     (nreverse r)))
 
 (defun resource (type id &rest spec)
+  (declare (type string id))
   (let ((res (or #1=(get-resource type id)
                  (setf #1# (make-resource type id)))))
     (when spec

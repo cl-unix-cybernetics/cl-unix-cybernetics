@@ -24,14 +24,6 @@
 
 ;;  User
 
-(define-resource-class user (resource-container)
-  ()
-  ((probe-user :properties (:ensure :login :uid :gid :realname
-                                    :home :shell))
-   (probe-user-groups :properties (:groups)))
-  ((op-update-user :properties (:ensure :uid :gid :realname :home :shell
-                                :login-class :groups))))
-
 (defgeneric probe-user-in-/etc/passwd (resource os))
 (defgeneric probe-user-groups-in-/etc/group (resource os))
 (defgeneric op-update-user (resource os &key ensure uid gid realname home shell

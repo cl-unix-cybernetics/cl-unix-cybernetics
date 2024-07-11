@@ -53,8 +53,6 @@
           :initform nil
           :reader operations-before)))
 
-(declaim (ftype (function (operation) (values function &optional))
-                operation-generic-function))
 (defgeneric operation-generic-function (op))
 
 ;;  Resource metaclass
@@ -120,9 +118,6 @@
 		      :initform nil
 		      :accessor probed-properties))
   (:metaclass resource-class))
-
-(declaim (ftype (function (resource) (values string &optional))
-                resource-id))
 
 (defgeneric resource-additional-specs (resource os))
 (defgeneric resource-probes-properties (resource))
@@ -212,6 +207,16 @@
 (defgeneric host-run (host &rest command))
 
 (defvar *host*)
+
+;;  User
+
+(define-resource-class user (resource-container)
+  ()
+  ((probe-user :properties (:ensure :login :uid :gid :realname
+                                    :home :shell))
+   (probe-user-groups :properties (:groups)))
+  ((op-update-user :properties (:ensure :uid :gid :realname :home :shell
+                                :login-class :groups))))
 
 ;;  Probing resources
 

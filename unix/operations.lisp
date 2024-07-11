@@ -125,7 +125,8 @@
         (g (if group
                (resource-id group)
                gid)))
-    (declare (type string u g))
+    (declare (type string u)
+             (type (or null string) g))
     (run "chown "
          (sh-quote u)
          (when g `(":" ,(sh-quote g)))
