@@ -13,7 +13,9 @@ LISP_LOAD = ${LISP} --load
 CLEANFILES = build/*
 DISTCLEANFILES = ${RELEASE_DIR} ${RELEASE_TARBALL} ${RELEASE_DEPS_TARBALL}
 
-all: ${PROGRAM}
+all: build
+
+build: ${PROGRAM}
 
 deps:
 	LANG=C.UTF-8 ${LISP_LOAD} prepare-build.lisp --quit
@@ -43,4 +45,4 @@ clean:
 distclean:
 	rm -rf ${DISTCLEANFILES}
 
-.PHONY: all build/systems.lisp clean deps install ${PROGRAM} release
+.PHONY: all build build/systems.lisp clean deps install ${PROGRAM} release
